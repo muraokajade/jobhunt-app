@@ -139,9 +139,6 @@ function App() {
     await fetchTasks();
   }
 
-
-
-
   useEffect(() => {
     fetchTasks();
   }, [statusFilter, searchKeyword]);
