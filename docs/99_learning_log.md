@@ -284,3 +284,65 @@ git status
 ```
 
 Git 操作は、必ずプロジェクトルートで行う。
+
+### クエリパラメータの理解
+
+以下の URL で検索条件を送る。
+
+```bash
+curl "http://127.0.0.1:8000/api/companies?keyword=Laravel"
+```
+
+このとき、Laravel 側では以下で取得できる。
+
+```php
+$request->query('keyword')
+```
+
+`filled('keyword')` は、`keyword` が存在していて空でないかを確認する。
+
+### index メソッドの流れ
+
+```php
+$query = Company::query();
+```
+
+で Company 検索用のクエリを作る。
+
+その後、`keyword`、`status`、`media` があれば条件を追加する。
+
+```php
+$query->where(...);
+```
+
+最後に以下で DB から取得する。
+
+```php
+$companies = $query->get();
+```
+
+### 日本語エスケープについて
+
+curl の結果では、日本語が以下のように表示されることがある。
+
+```json
+"\u682a\u5f0f\u4f1a\u793e\u30b5\u30f3\u30d7\u30eb"
+```
+
+これは JSON の日本語エスケープであり、エラーではない。
+
+React 側で JSON として受け取れば、通常は日本語として表示される。
+
+### 今回理解できたこと
+
+- `curl` は API 確認用のコマンド
+- Laravel サーバーを起動していないと API 確認できない
+- `/api/companies?keyword=Laravel` の `keyword` は `$request->query('keyword')` で取得できる
+- `filled('keyword')` は値の存在チェック
+- 日本語が `\uXXXX` 形式で表示されても問題ない
+
+### 理解が浅い・今後確認すること
+
+- `where(function ($q) use ($keyword) { ... })` のクロージャ構文
+- `orderByRaw('interview_date IS NULL')` の意味
+- `CompanyResource::collection($companies)` がどのように JSON へ変換しているか
