@@ -41,6 +41,12 @@ function App() {
   // null のときは新規登録モード
   // number のときは編集モード
 
+  // 詳細モーダルで表示する会社
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+
+  // 詳細モーダルを開いているか
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     media: "",
@@ -100,37 +106,33 @@ function App() {
       alert("企業名は必須です。");
       return;
     }
+
+    const requestBody = {
+        name: form.name,
+        media: form.media || null,
+        priority: form.priority || null,
+        status: "応募済み",
+        applied_date: form.applied_date || getTodayString(),
+        interview_date: null,
+        job_url: form.job_url || null,
+        interview_url: null,
+        memo: form.memo || null,
+        next_action: null,
+        document_result: "未対応",
+        first_interview_result: "未対応",
+        second_interview_result: "未対応",
+        final_result: "未対応",
+        rejection_stage: null,
+    }
+
+    console.log("送信データ", requestBody);
     const response = await fetch("http://127.0.0.1:8000/api/companies",{
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({
-          // ...form,
-          // priority:form.priority || null,
-          // applied_date: form.applied_date || null,
-          // interview_date: form.interview_date || null,
-          // job_url: form.job_url || null,
-          // interview_url: form.interview_url || null,
-          // memo: form.memo || null,
-          // next_action: form.next_action || null,
-          // rejection_stage: form.rejection_stage || null,
-            ...form,
-            priority: form.priority || null,
-            status: "応募済み",
-            applied_date: form.applied_date || getTodayString(),
-            interview_date: null,
-            interview_url: null,
-            next_action: null,
-            document_result: "未対応",
-            first_interview_result: "未対応",
-            second_interview_result: "未対応",
-            final_result: "未対応",
-            rejection_stage: null,
-            job_url: form.job_url || null,
-            memo: form.memo || null,
-      }),
+      body: JSON.stringify(requestBody),
 
     });
     if(!response.ok) {
@@ -196,6 +198,23 @@ function App() {
 
       await fetchCompanies();
 
+  }
+
+  function openDetailModal(company: Company) {
+
+    // 詳細ボタンで選択した会社情報を selectedCompany に保持する
+    setSelectedCompany(company);
+
+     // selectedCompany を表示するため、詳細モーダルを開く
+    setIsDetailOpen(true);
+  }
+
+  //モーダルを閉じる関数。
+  function closeDetailModal() {
+    //モーダルを閉じる
+    setIsDetailOpen(false);
+
+    setSelectedCompany(null);
   }
 
   useEffect(() => {
@@ -435,6 +454,13 @@ function App() {
                     <td className="px-4 py-3">{company.firstInterviewResult ?? "-"}</td>
                     <td className="px-4 py-3">{company.memo ?? "-"}</td>
                     <td className="px-4 py-3">
+                      {/* 詳細はcompany情報全てだからcompanyを渡す、後にModal開いた時に、値セットする。 */}
+                      <button
+                        className="rounded-lg bg-slate-700 px-3 py-1 text-sm font-semibold text-white"
+                        onClick={() => openDetailModal(company)}
+                      >
+                        詳細
+                      </button>
                       <button
                         className="rounded-lg bg-red-600 px-3 py-1 text-sm font-semibold text-white"
                         onClick={() => deleteCompany(company.id)}
@@ -448,6 +474,65 @@ function App() {
             </tbody>
           </table>
         </section>
+        {isDetailOpen && selectedCompany && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold">会社詳細</h2>
+              <button
+                className="rounded-lg border px-3 py-1"
+                onClick={closeDetailModal}
+              >
+                閉じる
+              </button>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <p>企業名：{selectedCompany.name}</p>
+              <p>媒体：{selectedCompany.media ?? "-"}</p>
+              <p>志望度：{selectedCompany.priority ?? "-"}</p>
+              <p>状況：{selectedCompany.status}</p>
+              <p>応募日：{selectedCompany.appliedDate ?? "-"}</p>
+              <p>面談日：{selectedCompany.interviewDate ?? "-"}</p>
+              <p>次アクション：{selectedCompany.nextAction ?? "-"}</p>
+
+              <p>求人URL：
+                {selectedCompany.jobUrl ? 
+                (<a href={selectedCompany.jobUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 underline"
+                >
+                  求人ページを開く
+                </a>) : (
+                  "-"
+                )}
+                
+              </p>
+
+              <p>面談URL：
+                {selectedCompany.interviewUrl ? 
+                (<a
+                  href={selectedCompany.interviewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  面談URLを開く
+                </a>) : 
+                ("-")
+              }
+              </p>
+              <p>書類選考：{selectedCompany.documentResult ?? "-"}</p>
+              <p>1次面接：{selectedCompany.firstInterviewResult ?? "-"}</p>
+              <p>2次面接：{selectedCompany.secondInterviewResult ?? "-"}</p>
+              <p>最終結果：{selectedCompany.finalResult ?? "-"}</p>
+              <p>落選段階：{selectedCompany.rejectionStage ?? "-"}</p>
+              <p>メモ：{selectedCompany.memo ?? "-"}</p>
+            </div>
+          </div>
+        </div>
+        )}    
       </div>
     </main>
   );
