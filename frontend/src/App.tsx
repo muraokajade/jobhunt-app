@@ -31,6 +31,10 @@ function App() {
   const [media, setMedia] = useState("");
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  // 編集中の企業IDを保持する
+  const [editingCompanyId, setEditingCompanyId] = useState<number | null>(null);
+  // null のときは新規登録モード
+  // number のときは編集モード
 
   const [form, setForm] = useState({
     name: "",
