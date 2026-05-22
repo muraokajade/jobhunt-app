@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class CompanyResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'media' => $this->media,
+            'status' => $this->status,
+            'appliedDate' => $this->applied_date,
+            'interviewDate' => $this->interview_date,
+            'jobUrl' => $this->job_url,
+            'interviewUrl' => $this->interview_url,
+            'memo' => $this->memo,
+            'nextAction' => $this->next_action,
+            'documentResult' => $this->document_result,
+            'firstInterviewResult' => $this->first_interview_result,
+            'secondInterviewResult' => $this->second_interview_result,
+            'finalResult' => $this->final_result,
+            'rejectionStage' => $this->rejection_stage,
+            'createdAt' => $this->created_at,
+            'updatedAt' => $this->updated_at,
+        ];
+    }
+}
