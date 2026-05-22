@@ -56,3 +56,18 @@ status は「現在どの状態にいるか」を表す。
 辞退
 落選
 ```
+
+---
+
+## 4. result の役割
+
+result は「各選考段階の結果」を表す。
+
+対象カラム：
+
+```txt
+document_result
+first_interview_result
+second_interview_result
+final_result
+```
