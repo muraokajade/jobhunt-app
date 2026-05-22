@@ -24,6 +24,7 @@ class StoreCompanyRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'media' => ['nullable', 'string', 'max:100'],
+            'priority' => ['nullable', 'string', 'max:20'],
             'status' => ['required', 'string', 'max:100'],
             'applied_date' => ['nullable', 'date'],
             'interview_date' => ['nullable', 'date'],

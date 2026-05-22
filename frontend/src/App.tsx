@@ -4,6 +4,7 @@ type Company = {
   id: number;
   name: string;
   media: string | null;
+  priority: string | null;
   status: string;
   appliedDate: string | null;
   interviewDate: string | null;
@@ -24,6 +25,10 @@ type CompanyResponse = {
   data: Company[];
 };
 
+function getTodayString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function App() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -39,8 +44,9 @@ function App() {
   const [form, setForm] = useState({
     name: "",
     media: "",
+    priority: "3.0",
     status: "応募済み",
-    applied_date: "",
+    applied_date: getTodayString(),
     interview_date: "",
     job_url: "",
     interview_url: "",
@@ -101,14 +107,29 @@ function App() {
         Accept: "application/json",
       },
       body: JSON.stringify({
-          ...form,
-          applied_date: form.applied_date || null,
-          interview_date: form.interview_date || null,
-          job_url: form.job_url || null,
-          interview_url: form.interview_url || null,
-          memo: form.memo || null,
-          next_action: form.next_action || null,
-          rejection_stage: form.rejection_stage || null,
+          // ...form,
+          // priority:form.priority || null,
+          // applied_date: form.applied_date || null,
+          // interview_date: form.interview_date || null,
+          // job_url: form.job_url || null,
+          // interview_url: form.interview_url || null,
+          // memo: form.memo || null,
+          // next_action: form.next_action || null,
+          // rejection_stage: form.rejection_stage || null,
+            ...form,
+            priority: form.priority || null,
+            status: "応募済み",
+            applied_date: form.applied_date || getTodayString(),
+            interview_date: null,
+            interview_url: null,
+            next_action: null,
+            document_result: "未対応",
+            first_interview_result: "未対応",
+            second_interview_result: "未対応",
+            final_result: "未対応",
+            rejection_stage: null,
+            job_url: form.job_url || null,
+            memo: form.memo || null,
       }),
 
     });
@@ -123,8 +144,9 @@ function App() {
     setForm({
       name: "",
       media: "",
+      priority:"",
       status: "応募済み",
-      applied_date: "",
+      applied_date: getTodayString(),
       interview_date: "",
       job_url: "",
       interview_url: "",
@@ -229,7 +251,6 @@ function App() {
             value={media}
             onChange={(event) => setMedia(event.target.value)}
           />
-
           <button
             className="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white"
             onClick={fetchCompanies}
@@ -254,8 +275,23 @@ function App() {
       value={form.media}
       onChange={(event) => setForm({ ...form, media: event.target.value })}
     />
+   <select
+      className="rounded-lg border border-slate-300 px-3 py-2"
+      value={form.priority}
+      onChange={(event) => setForm({ ...form, priority: event.target.value })}
+    >
+      <option value="5.0">5.0 本命</option>
+      <option value="4.5">4.5 かなり高い</option>
+      <option value="4.0">4.0 高い</option>
+      <option value="3.5">3.5 やや高い</option>
+      <option value="3.0">3.0 普通</option>
+      <option value="2.5">2.5 やや低い</option>
+      <option value="2.0">2.0 低い</option>
+      <option value="1.5">1.5 かなり低い</option>
+      <option value="1.0">1.0 とりあえず</option>
+    </select>
 
-    <select
+    {/* <select
       className="rounded-lg border border-slate-300 px-3 py-2"
       value={form.status}
       onChange={(event) => setForm({ ...form, status: event.target.value })}
@@ -269,28 +305,28 @@ function App() {
       <option value="内定">内定</option>
       <option value="辞退">辞退</option>
       <option value="落選">落選</option>
-    </select>
+    </select> */}
 
-    <input
+    {/* <input
       className="rounded-lg border border-slate-300 px-3 py-2"
       type="date"
       value={form.applied_date}
       onChange={(event) => setForm({ ...form, applied_date: event.target.value })}
-    />
+    /> */}
 
-    <input
+    {/* <input
       className="rounded-lg border border-slate-300 px-3 py-2"
       type="datetime-local"
       value={form.interview_date}
       onChange={(event) => setForm({ ...form, interview_date: event.target.value })}
-    />
+    /> */}
 
-    <input
+    {/* <input
       className="rounded-lg border border-slate-300 px-3 py-2"
       placeholder="次アクション"
       value={form.next_action}
       onChange={(event) => setForm({ ...form, next_action: event.target.value })}
-    />
+    /> */}
 
     <input
       className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
@@ -299,12 +335,12 @@ function App() {
       onChange={(event) => setForm({ ...form, job_url: event.target.value })}
     />
 
-    <input
+    {/* <input
       className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
       placeholder="面談URL"
       value={form.interview_url}
       onChange={(event) => setForm({ ...form, interview_url: event.target.value })}
-    />
+    /> */}
 
     <textarea
       className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
@@ -361,6 +397,7 @@ function App() {
               <tr>
                 <th className="px-4 py-3">企業名</th>
                 <th className="px-4 py-3">媒体</th>
+                <th className="px-4 py-3">志望度</th>
                 <th className="px-4 py-3">状況</th>
                 <th className="px-4 py-3">応募日</th>
                 <th className="px-4 py-3">面談日</th>
@@ -389,6 +426,7 @@ function App() {
                   <tr key={company.id} className="border-b border-slate-200">
                     <td className="px-4 py-3 font-semibold">{company.name}</td>
                     <td className="px-4 py-3">{company.media ?? "-"}</td>
+                    <td className="px-4 py-3">{company.priority ?? "-"}</td>
                     <td className="px-4 py-3">{company.status}</td>
                     <td className="px-4 py-3">{company.appliedDate ?? "-"}</td>
                     <td className="px-4 py-3">{company.interviewDate ?? "-"}</td>

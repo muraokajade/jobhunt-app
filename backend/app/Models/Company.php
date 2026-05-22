@@ -9,6 +9,7 @@ class Company extends Model
     protected $fillable = [
         'name',
         'media',
+        'priority',
         'status',
         'applied_date',
         'interview_date',
@@ -21,5 +22,6 @@ class Company extends Model
         'second_interview_result',
         'final_result',
         'rejection_stage',
+
     ];
 }

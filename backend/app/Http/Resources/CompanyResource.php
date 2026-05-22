@@ -18,6 +18,7 @@ class CompanyResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'media' => $this->media,
+            'priority' => $this->priority,
             'status' => $this->status,
             'appliedDate' => $this->applied_date,
             'interviewDate' => $this->interview_date,
