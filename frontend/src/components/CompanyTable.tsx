@@ -1,33 +1,10 @@
-type Company = {
-  id: number;
-  name: string;
-  media: string | null;
-  priority: string | null;
-  status: string;
-  appliedDate: string | null;
-  interviewDate: string | null;
-  jobUrl: string | null;
-  interviewUrl: string | null;
-  memo: string | null;
-  nextAction: string | null;
-  documentResult: string | null;
-  firstInterviewResult: string | null;
-  secondInterviewResult: string | null;
-  finalResult: string | null;
-  rejectionStage: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { Company, Option } from "../types/company";
 
-type PriorityOption = {
-    value: string;
-    label: string;
-}
 
 type CompanyTableProps = {
     companies: Company[];
     loading: boolean;
-    priorityOptions: PriorityOption[];
+    priorityOptions: Option[];
     statusOptions: string[];
     onPriorityChange: (company: Company, priority: string) => void;
     onStatusChange: (company: Company, status: string) => void;

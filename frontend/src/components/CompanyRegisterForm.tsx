@@ -1,37 +1,10 @@
-
-// 企業登録フォームで扱う入力値の型。
-// Laravel APIへ送る項目名に合わせて、フォーム側ではsnake_caseを使っている。
-type CompanyForm = {
-  name: string;
-  media: string;
-  priority: string;
-  status: string;
-  applied_date: string;
-  interview_date: string;
-  job_url: string;
-  interview_url: string;
-  memo: string;
-  next_action: string;
-  document_result: string;
-  first_interview_result: string;
-  second_interview_result: string;
-  final_result: string;
-  rejection_stage: string;
-};
-
-// selectで表示する志望度の選択肢の型。
-// valueはAPIやstateで扱う値、labelは画面に表示する文字列。
-type PriorityOption = {
-  value: string;
-  label: string;
-};
-
+import type { CompanyForm, Option } from "../types/company";
 // CompanyRegisterFormコンポーネントが親コンポーネントから受け取るpropsの型。
 // App.tsxで保持しているform状態・更新関数・選択肢・登録処理を受け取る。
 type CompanyRegisterFormProps = {
   form: CompanyForm;
   setForm: React.Dispatch<React.SetStateAction<CompanyForm>>; // Dispatchわかんねえ
-  priorityOptions: PriorityOption[];
+  priorityOptions: Option[];
   onCreate: () => void;
 };
 

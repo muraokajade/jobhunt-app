@@ -5,126 +5,26 @@ import CompanyTable from "./components/CompanyTable";
 import CompanyRegisterForm from "./components/CompanyRegisterForm";
 import SearchForm from "./components/SearchForm";
 import SummaryCards from "./components/SummaryCards";
+import ActionLists from "./components/ActionLists";
+import AppHeader from "./components/AppHeader";
+import TodayStrategyPanel from "./components/TodayStrategyPanel";
+import type { Company, CompanyForm } from "./types/company";
 
-type Company = {
-  id: number;
-  name: string;
-  media: string | null;
-  priority: string | null;
-  status: string;
-  appliedDate: string | null;
-  interviewDate: string | null;
-  jobUrl: string | null;
-  interviewUrl: string | null;
-  memo: string | null;
-  nextAction: string | null;
-  documentResult: string | null;
-  firstInterviewResult: string | null;
-  secondInterviewResult: string | null;
-  finalResult: string | null;
-  rejectionStage: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type CompanyForm = {
-  name: string;
-  media: string;
-  priority: string;
-  status: string;
-  applied_date: string;
-  interview_date: string;
-  job_url: string;
-  interview_url: string;
-  memo: string;
-  next_action: string;
-  document_result: string;
-  first_interview_result: string;
-  second_interview_result: string;
-  final_result: string;
-  rejection_stage: string;
-
-
-
-};
+import {
+  priorityOptions,
+  statusOptions,
+  resultOptions,
+  rejectionStageOptions,
+} from "./constants/companyOptions";
+import {
+  getTodayString,
+  createInitialForm,
+  toDateTimeLocal,
+  toApiDateTime,
+  buildCompanyRequestBody,
+} from "./utils/companyUtils";
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
-
-const priorityOptions = [
-  { value: "5.0", label: "5.0 本命" },
-  { value: "4.5", label: "4.5 本命寄り" },
-  { value: "4.0", label: "4.0 高い" },
-  { value: "3.5", label: "3.5 " },
-  { value: "3.0", label: "3.0 普通" },
-  { value: "2.5", label: "2.5" },
-  { value: "2.0", label: "2.0 低い" },
-  { value: "1.5", label: "1.5" },
-  { value: "1.0", label: "1.0 とりあえず" },
-];
-
-const statusOptions = [
-  "応募済み",
-  "書類選考待ち",
-  "書類通過",
-  "面談日程調整中",
-  "面談予定",
-  "面談後返答待ち",
-  "内定",
-  "辞退",
-  "落選",
-];
-
-const resultOptions = ["未対応", "通過", "不通過", "保留", "辞退"];
-
-const rejectionStageOptions = [
-  { value: "", label: "未設定" },
-  { value: "書類落ち", label: "書類落ち" },
-  { value: "1次面接落ち", label: "1次面接落ち" },
-  { value: "2次面接落ち", label: "2次面接落ち" },
-  { value: "最終落ち", label: "最終落ち" },
-  { value: "条件不一致", label: "条件不一致" },
-  { value: "辞退", label: "辞退" },
-];
-
-function getTodayString() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function createInitialForm(): CompanyForm {
-  return {
-    name: "",
-    media: "",
-    priority: "3.0",
-    status: "応募済み",
-    applied_date: getTodayString(),
-    interview_date: "",
-    job_url: "",
-    interview_url: "",
-    memo: "",
-    next_action: "",
-    document_result: "未対応",
-    first_interview_result: "未対応",
-    second_interview_result: "未対応",
-    final_result: "未対応",
-    rejection_stage: "",
-  };
-}
-
-function toDateTimeLocal(value: string | null) {
-  if (!value) {
-    return "";
-  }
-
-  return value.replace(" ", "T").slice(0, 16);
-}
-
-function toApiDateTime(value: string) {
-  if (!value) {
-    return null;
-  }
-
-  return value.replace("T", " ") + ":00";
-}
 
 function App() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -223,44 +123,6 @@ function App() {
     showToast("企業を登録しました。");
     setForm(createInitialForm());
     await fetchCompanies();
-  }
-
-  // CompanyResourceから返るcamelCaseの会社データを、
-  // Laravelへ送るsnake_caseのrequestBodyに変換する。
-  // overridesに渡した項目だけ、新しい値で上書きする。
-  function buildCompanyRequestBody(
-    company: Company,
-    overrides: Partial<CompanyForm> = {}
-  ) {
-    return {
-      name: overrides.name ?? company.name,
-      media: overrides.media ?? company.media ?? null,
-      priority: overrides.priority ?? company.priority ?? null,
-      status: overrides.status ?? company.status,
-      applied_date: overrides.applied_date ?? company.appliedDate ?? null,
-      interview_date:
-        overrides.interview_date !== undefined
-          ? toApiDateTime(overrides.interview_date)
-          : company.interviewDate ?? null,
-      job_url: overrides.job_url ?? company.jobUrl ?? null,
-      interview_url: overrides.interview_url ?? company.interviewUrl ?? null,
-      memo: overrides.memo ?? company.memo ?? null,
-      next_action: overrides.next_action ?? company.nextAction ?? null,
-      document_result:
-        overrides.document_result ?? company.documentResult ?? "未対応",
-      first_interview_result:
-        overrides.first_interview_result ??
-        company.firstInterviewResult ??
-        "未対応",
-      second_interview_result:
-        overrides.second_interview_result ??
-        company.secondInterviewResult ??
-        "未対応",
-      final_result:
-        overrides.final_result ?? company.finalResult ?? "未対応",
-      rejection_stage:
-        overrides.rejection_stage ?? company.rejectionStage ?? null,
-    };
   }
 
   async function updateCompanyPriority(company: Company, priority: string) {
@@ -412,6 +274,8 @@ function App() {
   }
 
   return (
+    <>
+    <AppHeader />
     <main className="min-h-screen bg-slate-100 p-6 text-slate-900">
       {toastMessage && (
         <div className="fixed right-6 top-6 z-50 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg">
@@ -420,13 +284,41 @@ function App() {
       )}
 
       <div className="mx-auto max-w-7xl">
-        <header className="mb-6">
-          <p className="text-sm font-semibold text-slate-500">転職活動CRM</p>
-          <h1 className="text-3xl font-bold">JobHunt</h1>
+        <section className="mb-6 rounded-2xl bg-slate-900 p-6 text-white shadow-sm">
+          <p className="text-sm font-semibold text-slate-300">
+            村岡 兼通さんの転職活動ダッシュボード
+          </p>
+
+          <h2 className="mt-2 text-2xl font-bold">
+            次に確認すべき企業を整理しましょう
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-300">
+            応募企業・面談予定・返答待ち・優先企業をまとめて管理できます。
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full bg-white/10 px-3 py-1">
+              応募管理
+            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1">
+              面談予定
+            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1">
+              次アクション
+            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1">
+              優先企業
+            </span>
+          </div>
+        </section>
+        <TodayStrategyPanel />
+        <section className="mb-6">
+          <h2 className="text-2xl font-bold">応募管理</h2>
           <p className="mt-2 text-slate-600">
             応募企業・選考状況・面談予定・次アクションを一元管理します。
           </p>
-        </header>
+        </section>
         {/* 検索フォーム */}
 
         <SearchForm
@@ -441,179 +333,24 @@ function App() {
 
         
         />
-
-        {/* 登録フォーム */}
-        {/* <section className="mb-6 rounded-xl bg-white p-4 shadow-sm">
-          <h2 className="mb-4 text-xl font-bold">企業登録</h2>
-
-          <div className="grid gap-3 md:grid-cols-3">
-            <input
-              className="rounded-lg border border-slate-300 px-3 py-2"
-              placeholder="企業名"
-              value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
-            />
-
-            <input
-              className="rounded-lg border border-slate-300 px-3 py-2"
-              placeholder="媒体"
-              value={form.media}
-              onChange={(event) => setForm({ ...form, media: event.target.value })}
-            />
-
-            <select
-              className="rounded-lg border border-slate-300 px-3 py-2"
-              value={form.priority}
-              onChange={(event) =>
-                setForm({ ...form, priority: event.target.value })
-              }
-            >
-              {priorityOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-
-            <input
-              className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
-              placeholder="求人URL"
-              value={form.job_url}
-              onChange={(event) =>
-                setForm({ ...form, job_url: event.target.value })
-              }
-            />
-
-            <textarea
-              className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
-              placeholder="メモ"
-              value={form.memo}
-              onChange={(event) => setForm({ ...form, memo: event.target.value })}
-            />
-          </div>
-
-          <button
-            type="button"
-            className="mt-4 rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white"
-            onClick={createCompany}
-          >
-            登録する
-          </button>
-        </section> */}
-
-        {/* //集計カード部分 */}
         <SummaryCards 
           companies={companies}
         />
+
+        <section className="mb-3">
+          <h2 className="text-xl font-bold">次に確認する企業</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            面談予定・返答待ち・高優先度の企業を優先して確認できます。
+          </p>
+        </section>
+
+        <ActionLists companies={companies} />
         <CompanyRegisterForm
           form={form}
           setForm={setForm}
           onCreate={createCompany}
           priorityOptions={priorityOptions}
         />
-        
-        {/* 一覧表示テーブル
-        <section className="overflow-x-auto rounded-xl bg-white shadow-sm">
-          <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
-            <thead className="bg-slate-900 text-white">
-              <tr>
-                <th className="px-4 py-3">企業名</th>
-                <th className="px-4 py-3">媒体</th>
-                <th className="px-4 py-3">志望度</th>
-                <th className="px-4 py-3">状況</th>
-                <th className="px-4 py-3">応募日</th>
-                <th className="px-4 py-3">面談日</th>
-                <th className="px-4 py-3">次アクション</th>
-                <th className="px-4 py-3">書類</th>
-                <th className="px-4 py-3">1次</th>
-                <th className="px-4 py-3">メモ</th>
-                <th className="px-4 py-3">操作</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td className="px-4 py-6 text-center" colSpan={11}>
-                    読み込み中...
-                  </td>
-                </tr>
-              ) : companies.length === 0 ? (
-                <tr>
-                  <td className="px-4 py-6 text-center" colSpan={11}>
-                    企業データがありません。
-                  </td>
-                </tr>
-              ) : (
-                companies.map((company) => (
-                  <tr key={company.id} className="border-b border-slate-200">
-                    <td className="px-4 py-3 font-semibold">{company.name}</td>
-                    <td className="px-4 py-3">{company.media ?? "-"}</td>
-
-                    <td className="px-4 py-3">
-                      <select
-                        className="rounded-lg border border-slate-300 px-2 py-1"
-                        value={company.priority ?? "3.0"}
-                        onChange={(event) =>
-                          updateCompanyPriority(company, event.target.value)
-                        }
-                      >
-                        {priorityOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <select
-                        className="rounded-lg border border-slate-300 px-2 py-1"
-                        value={company.status}
-                        onChange={(event) =>
-                          updateCompanyStatus(company, event.target.value)
-                        }
-                      >
-                        {statusOptions.map((statusOption) => (
-                          <option key={statusOption} value={statusOption}>
-                            {statusOption}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-
-                    <td className="px-4 py-3">{company.appliedDate ?? "-"}</td>
-                    <td className="px-4 py-3">{company.interviewDate ?? "-"}</td>
-                    <td className="px-4 py-3">{company.nextAction ?? "-"}</td>
-                    <td className="px-4 py-3">{company.documentResult ?? "-"}</td>
-                    <td className="px-4 py-3">
-                      {company.firstInterviewResult ?? "-"}
-                    </td>
-                    <td className="px-4 py-3">{company.memo ?? "-"}</td>
-
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button
-                          className="rounded-lg bg-slate-700 px-3 py-1 text-sm font-semibold text-white"
-                          onClick={() => openDetailModal(company)}
-                        >
-                          詳細
-                        </button>
-
-                        <button
-                          className="rounded-lg bg-red-600 px-3 py-1 text-sm font-semibold text-white"
-                          onClick={() => deleteCompany(company.id)}
-                        >
-                          削除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </section> */}
 
         <CompanyTable
           companies={companies}
@@ -640,6 +377,7 @@ function App() {
         />
       </div>
     </main>
+  </>
   );
 }
 
