@@ -1,26 +1,30 @@
 # 学習ログ・詰まった基礎技術
 
-## 2026-05-22
+## 概要
 
-## 1. Git コマンドを打つ場所
+JobHunt 開発で何度も詰まった基礎技術・設計判断・React / TypeScript 理解を短く残す。
+
+詳細ログをすべて残すと読まなくなるため、このファイルには「今後も効く重要ポイント」だけを残す。
+
+---
+
+## 2026-05-22 / 2026-05-23 重要学習まとめ
+
+---
+
+## 1. Git 操作は必ずプロジェクトルートで行う
 
 ### 詰まったこと
 
-`Desktop` で以下を実行してしまった。
-
-```bash
-git remote set-url origin https://github.com/muraokajade/jobhunt-app.git
-```
-
-結果、以下のエラーが出た。
+`Desktop` で `git remote` や `git push` を実行して、以下のエラーが出た。
 
 ```bash
 fatal: not a git repository (or any of the parent directories): .git
 ```
 
-## 原因
+### 原因
 
-`Desktop` は Git 管理フォルダではないため。
+`Desktop` は Git 管理フォルダではない。
 
 Git コマンドは、`.git` が存在するプロジェクトルートで実行する必要がある。
 
@@ -30,106 +34,70 @@ Git コマンドは、`.git` が存在するプロジェクトルートで実行
 /Users/muraokakanemichi/Desktop/jobhunt-app
 ```
 
-## 正しい操作
+### 正しい確認
 
 ```bash
-cd ~/Desktop/jobhunt-app
 pwd
 git status
 git remote -v
 ```
 
-その後に remote を変更する。
-
-```bash
-git remote set-url origin https://github.com/muraokajade/jobhunt-app.git
-git remote -v
-git push
-```
-
-## 学び
+### 学び
 
 Git 操作前は必ず現在地を確認する。
 
-```bash
-pwd
-git status
-```
-
-`pwd` がプロジェクトルートになっていない状態で、`git remote` や `git push` を打たない。
+`pwd` が `~/Desktop/jobhunt-app` になっていることを確認してから作業する。
 
 ---
 
-## 2. ローカルフォルダ名と GitHub リポジトリ名は別物
+## 2. GitHub リポジトリ名・ローカルフォルダ名・remote URL は別物
 
 ### 詰まったこと
 
-ローカルの `tasklog-app` を `jobhunt-app` に変更しただけでは、GitHub 側のリポジトリ名は変わらない。
+ローカルの `tasklog-app` を `jobhunt-app` に変更しただけでは、GitHub 側のリポジトリ名は変わらなかった。
 
-## 正しい理解
+### 原因
 
-以下の 3 つは別管理。
+以下の 3 つは別管理だから。
 
-- ローカルフォルダ名：Mac 上のフォルダ名
-- GitHub リポジトリ名：GitHub 上のリポジトリ名
-- remote URL：ローカル Git が push 先として見ている URL
+- ローカルフォルダ名
+- GitHub リポジトリ名
+- remote URL
 
-## 正しい流れ
-
-ローカルフォルダ名を変更する。
+### 正しい流れ
 
 ```bash
 cd ~/Desktop
 mv tasklog-app jobhunt-app
 cd jobhunt-app
-```
-
-GitHub 側でリポジトリ名を変更する。
-
-```txt
-GitHub
-→ Repository
-→ Settings
-→ Repository name
-→ jobhunt-app に変更
-→ Rename
-```
-
-その後、ローカルの remote URL を変更する。
-
-```bash
 git remote set-url origin https://github.com/muraokajade/jobhunt-app.git
 git remote -v
 git push
 ```
 
-## 学び
+### 学び
 
-アプリ名変更では、以下をセットで確認する。
+アプリ名を変更したら、以下をセットで確認する。
 
-- ローカルフォルダ名
-- GitHub リポジトリ名
-- remote URL
-- README 上の表記
-- 画面上のアプリ名
+```bash
+pwd
+git remote -v
+git status
+```
 
 ---
 
-## 3. README の場所
+## 3. README はプロジェクト直下に置く
 
 ### 詰まったこと
 
 `backend/README.md` と `frontend/README.md` はあったが、プロジェクト直下の `README.md` がなかった。
 
-## 正しい理解
+### 原因
 
-GitHub で最初に表示される README は、基本的にプロジェクト直下の `README.md`。
+ルート README と、backend / frontend の README の役割を分けて考えられていなかった。
 
-ポートフォリオや公開リポジトリでは、ルート README が重要。
-
-## 今回の対応
-
-以下の構成にした。
+### 正しい構成
 
 ```txt
 README.md
@@ -137,15 +105,15 @@ backend/README.md
 frontend/README.md
 ```
 
-## 学び
+### 学び
 
-プロジェクト全体の説明は、ルート README に書く。
+GitHub で最初に表示される README は、基本的にプロジェクト直下の `README.md`。
 
-バックエンド固有の説明は `backend/README.md`、フロントエンド固有の説明は `frontend/README.md` に分ける。
+プロジェクト全体の説明はルート README に書く。
 
 ---
 
-## 4. cat コマンド
+## 4. cat コマンドの理解
 
 ### 詰まったこと
 
@@ -157,11 +125,15 @@ cat > README.md <<'EOF'
 EOF
 ```
 
-## 正しい理解
+### 原因
+
+`cat` を「表示するだけのコマンド」として理解していた。
+
+### 正しい理解
 
 `cat` は、ファイル内容を表示したり、標準入力からファイルを作成したりできるコマンド。
 
-以下は、`README.md` に複数行の文章を書き込む操作。
+### 新規作成・上書き
 
 ```bash
 cat > README.md <<'EOF'
@@ -171,11 +143,7 @@ cat > README.md <<'EOF'
 EOF
 ```
 
-## 注意点
-
-`>` を使うと既存ファイルは上書きされる。
-
-追記したい場合は `>>` を使う。
+### 追記
 
 ```bash
 cat >> README.md <<'EOF'
@@ -183,29 +151,27 @@ cat >> README.md <<'EOF'
 EOF
 ```
 
-## 学び
+### 学び
 
-新規作成や上書きには `>`。  
-追記には `>>`。
+`>` は上書き。  
+`>>` は追記。
 
 ---
 
 ## 5. git status の見方
 
-## 状態 1：未追跡ファイル
-
-以下のように表示された。
+### 状態 1：未追跡ファイル
 
 ```bash
 Untracked files:
   README.md
 ```
 
-## 意味
+### 意味
 
-ファイルは存在するが、まだ Git 管理対象になっていない状態。
+ファイルは存在するが、まだ Git 管理対象になっていない。
 
-## 対応
+### 対応
 
 ```bash
 git add README.md
@@ -213,418 +179,226 @@ git commit -m "docs: add JobHunt project README"
 git push
 ```
 
-## 状態 2：ローカルがリモートより進んでいる
-
-以下のように表示された。
+### 状態 2：ローカルがリモートより進んでいる
 
 ```bash
 Your branch is ahead of 'origin/main' by 1 commit.
 ```
 
-## 意味
+### 意味
 
-ローカルでは commit 済みだが、GitHub にはまだ push されていない状態。
+ローカルでは commit 済みだが、GitHub にはまだ push されていない。
 
-## 対応
+### 対応
 
 ```bash
 git push
-```
-
----
-
-## 6. 今回完了したこと
-
-- ローカルフォルダ名を `tasklog-app` から `jobhunt-app` に変更
-- GitHub リポジトリ名を `jobhunt-app` に変更
-- remote URL を `jobhunt-app` に変更
-- ルート README を作成
-- `docs/` ディレクトリを作成
-- ミニ設計書用ファイルを作成
-
----
-
-## 7. 次回からの確認ルール
-
-Git 操作前は、必ず以下を確認する。
-
-```bash
-pwd
-git status
-git remote -v
-```
-
-`pwd` がプロジェクトルートになっていることを確認してから、以下を実行する。
-
-```bash
-git add
-git commit
-git push
-git remote
-```
-
----
-
-## 8. 今日の学びまとめ
-
-今回のミスは、Git の理解不足というより、**作業場所の確認不足**。
-
-実務では、以下の確認を癖にする。
-
-```bash
-pwd
-ls
-git status
-```
-
-特に `fatal: not a git repository` が出たら、まず疑うべきことはこれ。
-
-```txt
-今いる場所がプロジェクトルートではない
-```
-
-Git 操作は、必ずプロジェクトルートで行う。
-
-### クエリパラメータの理解
-
-以下の URL で検索条件を送る。
-
-```bash
-curl "http://127.0.0.1:8000/api/companies?keyword=Laravel"
-```
-
-このとき、Laravel 側では以下で取得できる。
-
-```php
-$request->query('keyword')
-```
-
-`filled('keyword')` は、`keyword` が存在していて空でないかを確認する。
-
-### index メソッドの流れ
-
-```php
-$query = Company::query();
-```
-
-で Company 検索用のクエリを作る。
-
-その後、`keyword`、`status`、`media` があれば条件を追加する。
-
-```php
-$query->where(...);
-```
-
-最後に以下で DB から取得する。
-
-```php
-$companies = $query->get();
-```
-
-### 日本語エスケープについて
-
-curl の結果では、日本語が以下のように表示されることがある。
-
-```json
-"\u682a\u5f0f\u4f1a\u793e\u30b5\u30f3\u30d7\u30eb"
-```
-
-これは JSON の日本語エスケープであり、エラーではない。
-
-React 側で JSON として受け取れば、通常は日本語として表示される。
-
-### 今回理解できたこと
-
-- `curl` は API 確認用のコマンド
-- Laravel サーバーを起動していないと API 確認できない
-- `/api/companies?keyword=Laravel` の `keyword` は `$request->query('keyword')` で取得できる
-- `filled('keyword')` は値の存在チェック
-- 日本語が `\uXXXX` 形式で表示されても問題ない
-
-### 理解が浅い・今後確認すること
-
-- `where(function ($q) use ($keyword) { ... })` のクロージャ構文
-- `orderByRaw('interview_date IS NULL')` の意味
-- `CompanyResource::collection($companies)` がどのように JSON へ変換しているか
-
----
-
-# 2026-05-22 追加ログ：何度も止まった基礎ポイント
-
-## 9. API 確認時に Laravel サーバーが起動していなかった
-
-### 詰まったこと
-
-`curl` で POST 確認をしようとしたが、以下のエラーが出た。
-
-```bash
-curl: (7) Failed to connect to 127.0.0.1 port 8000 after 0 ms: Couldn't connect to server
-```
-
-### 原因
-
-Laravel の開発サーバーを起動していなかった。
-
-API を確認するには、先に以下を実行しておく必要がある。
-
-```bash
-php artisan serve
-```
-
-### 正しい確認方法
-
-ターミナルを 2 枚使う。
-
-#### ターミナル 1：Laravel サーバー用
-
-```bash
-cd ~/Desktop/jobhunt-app/backend
-php artisan serve
-```
-
-このターミナルは起動したまま放置する。
-
-#### ターミナル 2：API 確認用
-
-```bash
-cd ~/Desktop/jobhunt-app/backend
-curl "http://127.0.0.1:8000/api/companies"
 ```
 
 ### 学び
 
-API 確認前には、必ずサーバーが起動しているか確認する。
+`git status` は、次に何をすべきかを見るための最重要コマンド。
+
+---
+
+## 6. push rejected は GitHub 側に未取得 commit がある状態
+
+### 詰まったこと
+
+```bash
+! [rejected] main -> main (fetch first)
+error: failed to push some refs
+```
+
+### 原因
+
+GitHub 側に、ローカルにはない commit があった。
+
+### 対応
+
+```bash
+git fetch origin
+git log --oneline --graph --decorate --all -5
+git pull --rebase origin main
+git push
+```
+
+### 学び
+
+`push rejected` は基本的に以下の意味。
 
 ```txt
-APIを叩く前に php artisan serve
+GitHub側の方が進んでいるので、先に取り込んでからpushして。
 ```
 
 ---
 
-## 10. curl で何を確認しているのかが曖昧だった
+## 7. rebase 前は作業ツリーをきれいにする
 
 ### 詰まったこと
 
-`curl` を実行するように言われても、どこで何を確認しているのかが曖昧だった。
+```bash
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+```
+
+### 原因
+
+未コミットの変更が残っていた。
+
+### 対応
+
+残す変更なら commit する。
+
+```bash
+git add .
+git commit -m "docs: update learning log"
+git pull --rebase origin main
+git push
+```
+
+捨てる変更なら restore する。
+
+```bash
+git restore ファイル名
+```
+
+### 学び
+
+rebase 前は必ず確認する。
+
+```bash
+git status
+```
+
+---
+
+## 8. Laravel API 確認前はサーバー起動が必要
+
+### 詰まったこと
+
+`curl` で API 確認しようとして接続エラーになった。
+
+```bash
+curl: (7) Failed to connect to 127.0.0.1 port 8000
+```
+
+### 原因
+
+Laravel サーバーを起動していなかった。
+
+### 対応
+
+Laravel サーバーを起動する。
+
+```bash
+cd backend
+php artisan serve
+```
+
+React とは別ターミナルで起動しておく。
+
+### 学び
+
+API 確認前には必ず Laravel サーバーが起動しているか確認する。
+
+---
+
+## 9. curl は React fetch の代わりに API 単体確認するコマンド
+
+### 詰まったこと
+
+`curl` で何を確認しているのかが曖昧だった。
 
 ### 正しい理解
 
 `curl` は、React の `fetch` の代わりに、ターミナルから API を直接叩くコマンド。
 
-React で書く以下の処理と近い。
-
-```ts
-fetch("http://127.0.0.1:8000/api/companies");
-```
-
-ターミナルでは以下になる。
-
 ```bash
 curl "http://127.0.0.1:8000/api/companies"
 ```
 
-### 確認していること
+### 目的
 
-- Laravel のルートが正しいか
-- Controller が呼ばれているか
-- DB からデータを取得できるか
-- JSON レスポンスが返るか
-- React に進む前に API 単体で動くか
+- ルートが正しいか確認
+- Controller が呼ばれるか確認
+- DB からデータを取得できるか確認
+- JSON レスポンスが返るか確認
+- React 側の問題か Laravel 側の問題か切り分ける
 
 ### 学び
 
-React 接続前に `curl` で API 単体確認をする。
+順番はこれ。
 
 ```txt
-Laravel API単体で成功
+Laravel API単体確認
 ↓
-React fetchで接続
+curlでJSON確認
+↓
+React fetch接続
 ```
-
-この順番にすると、問題の切り分けがしやすい。
 
 ---
 
-## 11. クエリパラメータの URL 構造が曖昧だった
+## 10. クエリパラメータは `/api/companies?keyword=Laravel`
 
 ### 詰まったこと
 
-`keyword` 検索について、URL を以下のように考えそうになった。
+以下のように考えそうになった。
 
 ```txt
 /api/companies/keyword?keyword=Laravel
 ```
 
-### 正しい URL
+### 原因
 
-今回の設計では、検索は一覧取得 API にクエリパラメータを付ける。
-
-```txt
-/api/companies?keyword=Laravel
-```
-
-複数条件の場合は以下。
-
-```txt
-/api/companies?keyword=Laravel&status=面談予定&media=type
-```
-
-### Laravel 側の対応
-
-```php
-if ($request->filled('keyword')) {
-    $keyword = $request->query('keyword');
-}
-```
-
-### 意味
-
-```txt
-/api/companies?keyword=Laravel
-```
-
-この URL の場合、
-
-```php
-$request->query('keyword')
-```
-
-で `Laravel` が取得できる。
-
-### 学び
-
-一覧検索・絞り込みは、基本的に以下の形。
-
-```txt
-GET /api/resources?条件名=値
-```
-
-今回なら、
-
-```txt
-GET /api/companies?keyword=Laravel
-```
-
----
-
-## 12. `$request->query()` と `filled()` の役割
-
-### 詰まったこと
-
-以下の 2 つの役割が曖昧だった。
-
-```php
-$request->filled('keyword')
-$request->query('keyword')
-```
+URL パスとクエリパラメータの役割が混ざっていた。
 
 ### 正しい理解
 
-#### filled
-
-```php
-$request->filled('keyword')
-```
-
-これは、`keyword` が存在していて、かつ空ではないかを確認する。
-
-#### query
-
-```php
-$request->query('keyword')
-```
-
-これは、URL のクエリパラメータから値を取得する。
-
-### 例
-
-URL が以下の場合、
+一覧検索は、一覧取得 API にクエリパラメータを付ける。
 
 ```txt
 /api/companies?keyword=Laravel
+/api/companies?keyword=Laravel&status=応募済み&media=type
 ```
 
-Laravel 側では以下になる。
+Laravel 側では以下で取得する。
 
 ```php
-$request->filled('keyword') // true
-$request->query('keyword')  // Laravel
+$request->query('keyword')
+$request->filled('keyword')
 ```
 
 ### 学び
 
-- `filled()` は存在チェック
-- `query()` は値の取得
+- `query()` は値を取得する
+- `filled()` は値が存在して空でないか確認する
 
 ---
 
-## 13. PHP の文字列展開で `${keyword}` と書いてしまった
+## 11. FormRequest と validated の関係
 
 ### 詰まったこと
 
-Controller 内で以下のように書いた。
-
-```php
-$q->where('name', 'like', "%${keyword}%")
-```
-
-### 正しい書き方
-
-PHP では以下のように書く方が安全で読みやすい。
-
-```php
-$q->where('name', 'like', "%{$keyword}%")
-    ->orWhere('memo', 'like', "%{$keyword}%")
-    ->orWhere('next_action', 'like', "%{$keyword}%");
-```
+`$request->validated()` がどこでバリデーションしているのか曖昧だった。
 
 ### 原因
 
-JavaScript / TypeScript のテンプレートリテラル感覚が混ざった。
-
-### 学び
-
-JavaScript では以下。
-
-```ts
-`${keyword}`;
-```
-
-PHP では以下。
-
-```php
-"{$keyword}"
-```
-
-言語ごとの文字列展開を混ぜない。
-
----
-
-## 14. `$request->validated()` がどこでバリデーションしているのか曖昧だった
-
-### 詰まったこと
-
-以下の処理で、どこでバリデーションされているのかが曖昧だった。
-
-```php
-$company = Company::create($request->validated());
-```
+Controller と FormRequest の役割分担が曖昧だった。
 
 ### 正しい理解
 
-Controller の引数で `StoreCompanyRequest` を受け取っている。
+Controller で `StoreCompanyRequest` / `UpdateCompanyRequest` を受け取ると、`rules()` が実行される。
 
 ```php
 public function store(StoreCompanyRequest $request)
+{
+    $company = Company::create($request->validated());
+}
 ```
 
-この時点で、`StoreCompanyRequest` の `rules()` が実行される。
-
-バリデーションを通過した値だけを、以下で取得している。
-
-```php
-$request->validated()
-```
+`validated()` は、FormRequest のルールを通過した安全な値だけを返す。
 
 ### 流れ
 
@@ -642,25 +416,19 @@ Company::create()
 
 ### 学び
 
-`validated()` は、入力値をそのまま取得しているのではなく、FormRequest のルールを通過した安全な値だけを返す。
+`validated()` は入力値をそのまま取るのではなく、検証済みの値だけを返す。
 
 ---
 
-## 15. Resource の役割が曖昧だった
+## 12. Resource は Laravel 側のデータを React 向けに整形する場所
 
 ### 詰まったこと
 
-以下の意味が曖昧だった。
-
-```php
-return CompanyResource::collection($companies);
-```
+`CompanyResource::collection($companies)` の役割が曖昧だった。
 
 ### 正しい理解
 
-`CompanyResource` は、Laravel 側のデータを React 側が使いやすい JSON に整える場所。
-
-DB 側では snake_case。
+DB / Laravel 側は snake_case。
 
 ```txt
 applied_date
@@ -669,7 +437,7 @@ job_url
 next_action
 ```
 
-React 側では camelCase。
+React 側は camelCase。
 
 ```txt
 appliedDate
@@ -678,11 +446,9 @@ jobUrl
 nextAction
 ```
 
-この変換を `CompanyResource` で行う。
+この変換は `CompanyResource` で行う。
 
-### 学び
-
-Resource の役割は以下。
+### 役割
 
 ```txt
 DB・Laravel側のデータ形式
@@ -692,11 +458,51 @@ APIレスポンス用に整形
 Reactが使いやすいJSONにする
 ```
 
+### 学び
+
 Controller に整形処理を書きすぎず、Resource に分ける。
 
 ---
 
-## 16. `orderByRaw('interview_date IS NULL')` の意味が未完成理解
+## 13. where(function ($q) use ($keyword)) の理解
+
+### 詰まったこと
+
+以下の構文が読みづらかった。
+
+```php
+$query->where(function ($q) use ($keyword) {
+    $q->where('name', 'like', "%{$keyword}%")
+        ->orWhere('memo', 'like', "%{$keyword}%")
+        ->orWhere('next_action', 'like', "%{$keyword}%");
+});
+```
+
+### 正しい理解
+
+複数の `orWhere` 条件を 1 つのグループにまとめる。
+
+SQL イメージ。
+
+```sql
+WHERE (
+  name LIKE '%Laravel%'
+  OR memo LIKE '%Laravel%'
+  OR next_action LIKE '%Laravel%'
+)
+```
+
+### use の意味
+
+外側の `$keyword` を、内側の関数で使うために書く。
+
+### 学び
+
+複数カラムを横断検索するときは、`where(function () { ... })` で条件をグループ化する。
+
+---
+
+## 14. orderByRaw('interview_date IS NULL') の理解
 
 ### 詰まったこと
 
@@ -712,13 +518,7 @@ Controller に整形処理を書きすぎず、Resource に分ける。
 
 面談日がある企業を優先的に上に出し、面談日が近い順に並べる意図。
 
-```php
-orderByRaw('interview_date IS NULL')
-```
-
-は、`interview_date` が NULL かどうかで並び順を制御している。
-
-### 今後深掘りすること
+### 今後深掘り
 
 - SQL で `IS NULL` が並び順にどう影響するか
 - MySQL / SQLite で boolean 的な値がどう並ぶか
@@ -726,270 +526,562 @@ orderByRaw('interview_date IS NULL')
 
 ### 学び
 
-今は完全理解で止まらず、以下の理解で進める。
+現時点では以下の理解で進める。
 
 ```txt
-面談日がある企業を上に出すための並び順調整
+面談日がある企業を上に出すための並び順調整。
 ```
 
 ---
 
-## 17. `where(function ($q) use ($keyword) { ... })` の理解が浅い
+# JobHunt UX / 設計判断
+
+## 15. 初回登録フォームは DB カラムを全部並べない
 
 ### 詰まったこと
 
-以下の構文の理解が浅い。
+DB カラムをそのままフォームに並べそうになった。
 
-```php
-$query->where(function ($q) use ($keyword) {
-    $q->where('name', 'like', "%{$keyword}%")
-        ->orWhere('memo', 'like', "%{$keyword}%")
-        ->orWhere('next_action', 'like', "%{$keyword}%");
+### 原因
+
+DB 設計と画面 UX を同じ粒度で考えていた。
+
+### 重要判断
+
+初回登録フォームは、応募直後に分かる情報だけに絞る。
+
+### 表示する項目
+
+```txt
+企業名
+媒体
+志望度
+求人URL
+メモ
+```
+
+### 自動セットする項目
+
+```txt
+status = 応募済み
+applied_date = 今日
+interview_date = null
+interview_url = null
+next_action = null
+document_result = 未対応
+first_interview_result = 未対応
+second_interview_result = 未対応
+final_result = 未対応
+rejection_stage = null
+```
+
+### 学び
+
+DB カラムをそのままフォームに出すと、実際の業務フローとズレる。
+
+初回登録と選考更新は分ける。
+
+---
+
+## 16. priority は 1.0〜5.0 の 0.5 刻みで管理する
+
+### 判断
+
+S / A / B+ より、数値の方が並び替え・集計・フィルターに使いやすい。
+
+```txt
+5.0 = 本命
+4.0 = 高い
+3.0 = 普通
+2.0 = 低い
+1.0 = とりあえず応募
+```
+
+### 学び
+
+志望度は主観で変わるため、一覧上で即変更できると Excel より便利。
+
+---
+
+## 17. 会社詳細モーダルの役割
+
+### 目的
+
+初回登録では扱わない情報を、後から会社ごとに正確に更新する。
+
+### 扱う項目
+
+```txt
+priority
+status
+job_url
+interview_url
+interview_date
+next_action
+document_result
+first_interview_result
+second_interview_result
+final_result
+rejection_stage
+memo
+```
+
+### 学び
+
+初回登録は速度重視。  
+詳細モーダルは正確な更新重視。
+
+---
+
+## 18. 一覧インライン更新の役割
+
+### 目的
+
+詳細モーダルを開かずに、一覧上で頻繁に変わる項目を即更新する。
+
+### 対象
+
+```txt
+priority
+status
+```
+
+### 学び
+
+priority と status は変化頻度が高い。
+
+一覧から直接変更できると、Excel より操作が速い。
+
+---
+
+# React / TypeScript 理解
+
+## 19. selectedCompany と detailForm は分ける
+
+### 詰まったこと
+
+モーダルで表示するデータと、編集中のデータの違いが曖昧だった。
+
+### 正しい理解
+
+```txt
+selectedCompany = 一覧から選んだ元データ
+detailForm = モーダル内で編集中のデータ
+```
+
+### 学び
+
+保存前に `selectedCompany` を直接変更しない。
+
+---
+
+## 20. company → detailForm と detailForm → requestBody は別
+
+### モーダルを開くとき
+
+```txt
+company
+↓
+detailForm
+```
+
+React 画面表示用の camelCase を、フォーム用の snake_case に詰め替える。
+
+### 保存するとき
+
+```txt
+detailForm
+↓
+requestBody
+↓
+PUT /api/companies/{id}
+```
+
+Laravel API に送る形に変換する。
+
+### 学び
+
+同じ「詰め替え」でも、方向が違う。
+
+```txt
+表示準備：company → detailForm
+保存準備：detailForm → requestBody
+```
+
+---
+
+## 21. PUT では会社データ全体を送る必要がある
+
+### 詰まったこと
+
+一覧で priority だけ変更したいのに、なぜ他の項目も送るのか分からなかった。
+
+### 原因
+
+今の Laravel の `PUT /api/companies/{id}` は、会社データ全体を更新する API だから。
+
+### 正しい理解
+
+見た目は priority だけ更新でも、requestBody には既存の会社データ一式が必要。
+
+```txt
+companyの既存値
++
+priorityだけ新しい値
+```
+
+### 学び
+
+部分更新に見えても、API 仕様が全体更新なら、requestBody は全体を送る。
+
+---
+
+## 22. buildCompanyRequestBody の役割
+
+### 目的
+
+priority 更新、status 更新、詳細更新で、毎回 requestBody を手書きしないようにする。
+
+### 考え方
+
+```txt
+companyの既存値をベースにする
+overridesに入っている値だけ上書きする
+Laravelが受け取れるsnake_case形式に変換する
+```
+
+### 学び
+
+重複コードを減らすと、更新漏れやバリデーションエラーのリスクが下がる。
+
+---
+
+## 23. Partial<T> は「一部だけ渡して OK」にする型
+
+### 詰まったこと
+
+以下が分からなかった。
+
+```ts
+overrides: Partial<CompanyForm> = {};
+```
+
+### 正しい理解
+
+`CompanyForm` は全部入りの型。
+
+でもインライン更新では、priority だけ、status だけを渡したい。
+
+```ts
+Partial<CompanyForm>;
+```
+
+にすると、以下のように一部だけ渡せる。
+
+```ts
+{
+  priority: "5.0";
+}
+{
+  status: "面談予定";
+}
+```
+
+### 学び
+
+`Partial<T>` は、T のプロパティをすべて任意にする型。
+
+---
+
+## 24. overrides は「上書きしたい値」
+
+### 詰まったこと
+
+以下の意味が曖昧だった。
+
+```ts
+buildCompanyRequestBody(company, { priority });
+```
+
+### 正しい理解
+
+これは以下の意味。
+
+```txt
+companyの既存値をベースにする
+priorityだけ新しい値で上書きする
+```
+
+`{ priority }` は以下の省略形。
+
+```ts
+{
+  priority: priority;
+}
+```
+
+### 学び
+
+`overrides` は「上書きしたい値」を入れるオブジェクト。
+
+---
+
+## 25. オブジェクト更新は `{ ...detailForm, key: value }`
+
+### 詰まったこと
+
+`[]` と書きそうになった。
+
+### 原因
+
+配列とオブジェクトの更新が混ざっていた。
+
+### 正しい理解
+
+`detailForm` はオブジェクト。
+
+```ts
+{
+  name: "",
+  media: "",
+  next_action: ""
+}
+```
+
+そのため更新は `{}` で行う。
+
+```ts
+setDetailForm({
+  ...detailForm,
+  next_action: e.target.value,
 });
 ```
 
-### 現時点の理解
-
-複数の `orWhere` 条件を 1 つのグループにまとめるために使っている。
-
-意味としては以下。
-
-```sql
-WHERE (
-  name LIKE '%Laravel%'
-  OR memo LIKE '%Laravel%'
-  OR next_action LIKE '%Laravel%'
-)
-```
-
-### `use ($keyword)` の意味
-
-クロージャの外側にある `$keyword` を、内側の関数で使うために書く。
-
 ### 学び
 
-複数カラムを横断検索するときは、`where(function () { ... })` でグループ化する。
+`...detailForm` は今の値を全部コピー。  
+後ろの `next_action` だけ上書きする。
 
 ---
 
-## 18. GitHub 側とローカル側の履歴が分岐した
+## 26. table では tr 直下に select を置かない
 
 ### 詰まったこと
 
-`git push` したときに以下のエラーが出た。
-
-```bash
-! [rejected] main -> main (fetch first)
-error: failed to push some refs to 'https://github.com/muraokajade/jobhunt-app.git'
-```
+一覧の列がズレた。
 
 ### 原因
 
-GitHub 側に、ローカルにはない commit があった。
+`<tr>` の直下に `<select>` を置いていた。
 
-今回の場合、GitHub 上で設計書を更新し、ローカルでは API 実装を commit していたため、履歴が分岐した。
+### 間違い
 
-### 状態確認
-
-```bash
-git fetch origin
-git log --oneline --graph --decorate --all -5
+```tsx
+<tr>
+  <td>{company.name}</td>
+  <select>...</select>
+</tr>
 ```
 
-この結果、以下のように分岐していた。
+### 正しい形
 
-```txt
-ローカル：feat: add company API CRUD
-GitHub側：Update 02_db_design.md / Update 03_api_design.md
-```
-
-### 正しい対応
-
-GitHub 側の変更を取り込んでから push する。
-
-```bash
-git pull --rebase origin main
-git push
+```tsx
+<tr>
+  <td>企業名</td>
+  <td>媒体</td>
+  <td>
+    <select>志望度</select>
+  </td>
+  <td>
+    <select>状況</select>
+  </td>
+</tr>
 ```
 
 ### 学び
 
-`push rejected` は、基本的に以下の意味。
-
-```txt
-GitHub側の方が進んでいるので、先に取り込んでからpushして
-```
+`tr` の直下は基本的に `td` / `th`。
 
 ---
 
-## 19. rebase 前に未コミット変更があって止まった
+## 27. onChange では e.target.value を渡す
 
 ### 詰まったこと
 
-`git pull --rebase origin main` を実行したら、以下のエラーが出た。
+第二引数に何を渡すか迷った。
 
-```bash
-error: cannot pull with rebase: You have unstaged changes.
-error: Please commit or stash them.
+### 正しい理解
+
+select の変更後の値は `e.target.value`。
+
+```tsx
+onChange={(e) => updateCompanyPriority(company, e.target.value)}
 ```
 
-### 原因
-
-`docs/99_learning_log.md` に未コミットの変更が残っていた。
-
-### 確認
-
-```bash
-git status
-git diff --stat
-```
-
-結果、以下が表示された。
+### 意味
 
 ```txt
-modified: docs/99_learning_log.md
-```
-
-### 対応
-
-残すべき変更だったため、先に commit した。
-
-```bash
-git add docs/99_learning_log.md
-git commit -m "docs: add company API learning log"
-```
-
-その後、再度 rebase した。
-
-```bash
-git pull --rebase origin main
-git push
+この会社の志望度を、選択された新しい値に更新する。
 ```
 
 ### 学び
 
-rebase 前は、作業ツリーをきれいにする。
+`onChange` では、変更後の値が必要なので `e.target.value` を使う。
 
-```bash
-git status
-```
+---
 
-で以下の状態にしてから rebase する。
+## 28. id だけで足りる処理と company 全体が必要な処理
+
+### id だけで OK
 
 ```txt
-working tree clean
+削除
+```
+
+理由。
+
+```txt
+DELETE /api/companies/{id}
+```
+
+### company 全体が必要
+
+```txt
+詳細表示
+インライン更新
+PUT更新
+```
+
+理由。
+
+```txt
+表示する情報やrequestBody作成に、会社データ一式が必要だから。
+```
+
+### 学び
+
+削除は id だけでよい。  
+表示・編集・更新は company 全体が必要になりやすい。
+
+---
+
+# 設計書 / 個人開発メモ
+
+## 29. 個人開発でも設計書を書くメリット
+
+### 学び
+
+設計書を書くメリットは、実装中の判断ブレを減らすこと。
+
+特に以下が決まっていると手が止まりにくい。
+
+```txt
+何を初回登録で扱うか
+何を詳細モーダルで扱うか
+何を一覧で直接更新するか
+nullをどう表示するか
+PUTで何を送るか
+```
+
+### 個人開発での役割
+
+設計書は、重い資料ではなく以下。
+
+```txt
+自分用の実装地図
+第三者に説明できる資料
+未来の自分が迷わないための判断ログ
 ```
 
 ---
 
-## 20. 今回の重要ポイントまとめ
+## 30. 設計書は画面スクショ + 操作順 + 処理メモが分かりやすい
 
-今日、何度も止まったポイントは以下。
+### 学び
 
-- Git コマンドを打つ場所
-- ローカルフォルダ名と GitHub リポジトリ名の違い
-- remote URL の意味
-- README の場所
-- `cat` コマンド
-- `curl` の役割
-- Laravel サーバー起動の必要性
-- クエリパラメータの URL 構造
-- `$request->query()` と `filled()` の違い
-- FormRequest と `$request->validated()` の関係
-- Resource の役割
-- `where(function () use () {})` の意味
-- `orderByRaw()` の意味
-- GitHub 側とローカル側の履歴分岐
-- rebase 前の未コミット変更
+No を細かく分けすぎるより、画面ができている場合は以下の構成が分かりやすい。
 
-### 次回以降の基本確認セット
-
-#### Git 操作前
-
-```bash
-pwd
-git status
-git remote -v
+```txt
+左：画面スクショ
+右：操作順
+下：state / API / null表示 / 補足
 ```
 
-#### API 確認前
+### 理由
 
-```bash
-php artisan serve
-php artisan route:list --path=api
+実装に直結しやすい。
+
+```txt
+このボタンを押す
+↓
+どのstateが変わる
+↓
+どのAPIを呼ぶ
+↓
+画面がどう変わる
 ```
 
-#### curl 確認
+が見えるから。
 
-```bash
-curl "http://127.0.0.1:8000/api/companies"
-```
+---
 
-#### push 前
+# 現在できたこと
 
-```bash
-git status
-git log --oneline --graph --decorate --all -5
+## 31. 実装済み
+
+```txt
+Laravel API CRUD
+companies テーブル
+priority カラム追加
+React 企業一覧表示
+初回登録フォーム
+企業削除
+toast表示
+検索・絞り込み
+登録時の status = 応募済み
+登録時の applied_date = 今日
+登録時の result系 = 未対応
+初回登録フォームの簡略化
+詳細モーダル表示
+URLリンク表示
+priority / status / next_action の詳細モーダル保存
+一覧のpriorityインライン更新
+一覧のstatusインライン更新
 ```
 
 ---
 
-## 21. 今日の SE 力メモ
+# 今後の重要課題
 
-今日の目的は、単に CRUD を作ることではない。
+## 32. TypeScript 理解 docs に切り出す
 
-設計書を見て、以下の流れを自分の頭でつなぐこと。
+以下は `99_learning_log.md` ではなく、別 docs に蓄積する。
 
 ```txt
-DB設計
-↓
-Migration
-↓
-Model
-↓
-FormRequest
-↓
-Resource
-↓
-Controller
-↓
-Route
-↓
-curl確認
-↓
-React連携
+Partial<T>
+typeof
+オブジェクトのスプレッド構文
+{ priority } の省略記法
+e.target.value
+Company型とCompanyForm型の違い
+camelCase / snake_case変換
 ```
 
-ここがつながると、設計を実装に落とし込める。
+候補ファイル。
 
-逆に、実装中に詰まったところを設計書や学習ログに戻すことで、実装から設計へ逆流する力も鍛えられる。
+```txt
+docs/98_typescript_learning.md
+```
 
-今回の進め方は、上流・PM を目指すための基礎訓練としてかなり良い。
+---
 
-## 2026-05-22 JobHunt UX 整理ログ
+## 33. 次にやること
 
-### 今日決めたこと
-
-- 初回登録フォームは応募直後に分かる情報だけに絞る
-- 表示する項目は、企業名・媒体・志望度・求人 URL・メモ
-- status は応募済みで自動セットする
-- applied_date は今日の日付で自動セットする
-- 面談日、面談 URL、次アクション、選考結果、落選段階は初回登録では入力させない
-- 志望度は priority として DB に追加する
-- priority は 1.0〜5.0 の 0.5 刻みで管理する
-- 一覧では志望度を表示する
-- 詳細モーダルやインライン更新は次回以降に回す
-
-### 理解できたこと
-
-- DB カラムをそのままフォームに並べると、実際の業務フローとズレる
-- 初回登録と選考更新は別の UX として考える必要がある
-- 応募直後に分からない項目は、詳細編集や後続更新に分離した方がよい
-- priority は主観的に変わるため、将来的には一覧上で即更新できると便利
-
-### 次回確認すること
-
-- priority の保存・表示が安定しているか
-- 登録時に status と applied_date が自動セットされているか
-- 志望度と status を一覧で即更新する設計に入るか
-- 詳細モーダルで URL・面談情報・選考結果を扱うか
+```txt
+1. App.tsxの共通化後の動作確認
+2. priority / status インライン更新確認
+3. 詳細モーダル保存確認
+4. th / tdズレ確認
+5. commit
+6. docs/98_typescript_learning.md 作成
+```
