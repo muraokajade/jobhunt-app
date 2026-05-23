@@ -1,3 +1,5 @@
+// APIから取得した企業データを画面で扱うための型。
+// LaravelのCompanyResourceから返ってくるcamelCaseの項目に合わせている。
 type Company = {
   id: number;
   name: string;
@@ -19,6 +21,8 @@ type Company = {
   updatedAt: string;
 };
 
+// 詳細モーダル内の編集フォームで扱う入力値の型。
+// Laravel APIへ送るリクエスト形式に合わせてsnake_caseで定義している。
 type CompanyForm = {
   name: string;
   media: string;
@@ -37,11 +41,15 @@ type CompanyForm = {
   rejection_stage: string;
 };
 
+// selectの選択肢で使う共通型。
+// valueはstateやAPIに送る値、labelは画面表示用の文字列。
 type Option = {
   value: string;
   label: string;
 };
 
+// CompanyDetailModalコンポーネントが親コンポーネントから受け取るpropsの型。
+// 詳細表示対象の企業、編集フォーム、保存処理、各種選択肢を受け取る。
 type CompanyDetailModalProps = {
   isOpen: boolean;
   selectedCompany: Company | null;
@@ -55,6 +63,8 @@ type CompanyDetailModalProps = {
   rejectionStageOptions: Option[];
 };
 
+// 会社詳細モーダルを表示するコンポーネント。
+// 詳細情報の編集UIだけを担当し、API保存処理は親コンポーネントのonSaveに任せる。
 function CompanyDetailModal({
   isOpen,
   selectedCompany,
@@ -202,12 +212,27 @@ function CompanyDetailModal({
           <select
             className="w-full rounded-lg border px-3 py-2"
             value={detailForm.document_result}
-            onChange={(event) =>
+            onChange={(event) => {
+              // 書類選考selectで選ばれた値を一時的に保持する。
+              // 不通過の場合のみ、状況と落選段階を補助的に自動反映する。
+              const documentResult = event.target.value;
+
+              if (documentResult === "不通過") {
+                setDetailForm({
+                  ...detailForm,
+                  document_result: documentResult,
+                  status: "落選",
+                  rejection_stage: "書類落ち",
+                });
+
+                return;
+              }
+
               setDetailForm({
                 ...detailForm,
-                document_result: event.target.value,
-              })
-            }
+                document_result: documentResult,
+              });
+            }}
           >
             {resultOptions.map((result) => (
               <option key={result} value={result}>
@@ -220,12 +245,27 @@ function CompanyDetailModal({
           <select
             className="w-full rounded-lg border px-3 py-2"
             value={detailForm.first_interview_result}
-            onChange={(event) =>
+            onChange={(event) => {
+              // 1次面接selectで選ばれた値を一時的に保持する。
+              // 不通過の場合のみ、状況と落選段階を補助的に自動反映する。
+              const firstInterviewResult = event.target.value;
+
+              if (firstInterviewResult === "不通過") {
+                setDetailForm({
+                  ...detailForm,
+                  first_interview_result: firstInterviewResult,
+                  status: "落選",
+                  rejection_stage: "1次面接落ち",
+                });
+
+                return;
+              }
+
               setDetailForm({
                 ...detailForm,
-                first_interview_result: event.target.value,
-              })
-            }
+                first_interview_result: firstInterviewResult,
+              });
+            }}
           >
             {resultOptions.map((result) => (
               <option key={result} value={result}>
@@ -238,12 +278,27 @@ function CompanyDetailModal({
           <select
             className="w-full rounded-lg border px-3 py-2"
             value={detailForm.second_interview_result}
-            onChange={(event) =>
+            onChange={(event) => {
+              // 2次面接selectで選ばれた値を一時的に保持する。
+              // 不通過の場合のみ、状況と落選段階を補助的に自動反映する。
+              const secondInterviewResult = event.target.value;
+
+              if (secondInterviewResult === "不通過") {
+                setDetailForm({
+                  ...detailForm,
+                  second_interview_result: secondInterviewResult,
+                  status: "落選",
+                  rejection_stage: "2次面接落ち",
+                });
+
+                return;
+              }
+
               setDetailForm({
                 ...detailForm,
-                second_interview_result: event.target.value,
-              })
-            }
+                second_interview_result: secondInterviewResult,
+              });
+            }}
           >
             {resultOptions.map((result) => (
               <option key={result} value={result}>
@@ -256,12 +311,38 @@ function CompanyDetailModal({
           <select
             className="w-full rounded-lg border px-3 py-2"
             value={detailForm.final_result}
-            onChange={(event) =>
+            onChange={(event) => {
+              // 最終結果selectで選ばれた値を一時的に保持する。
+              // 通過なら内定、不通過なら最終落ちとして補助的に自動反映する。
+              const finalResult = event.target.value;
+
+              if (finalResult === "不通過") {
+                setDetailForm({
+                  ...detailForm,
+                  final_result: finalResult,
+                  status: "落選",
+                  rejection_stage: "最終落ち",
+                });
+
+                return;
+              }
+
+              if (finalResult === "通過") {
+                setDetailForm({
+                  ...detailForm,
+                  final_result: finalResult,
+                  status: "内定",
+                  rejection_stage: "",
+                });
+
+                return;
+              }
+
               setDetailForm({
                 ...detailForm,
-                final_result: event.target.value,
-              })
-            }
+                final_result: finalResult,
+              });
+            }}
           >
             {resultOptions.map((result) => (
               <option key={result} value={result}>

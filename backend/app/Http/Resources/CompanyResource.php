@@ -5,10 +5,13 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+// 企業情報APIのレスポンス形式を定義するResourceクラス。
+// DB・Laravel側のsnake_caseカラムを、React側で扱いやすいcamelCaseに変換する。
 class CompanyResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
+     * CompanyモデルをAPIレスポンス用の配列に変換するメソッド。
+     * フロントエンドではこの形式をCompany型として受け取り、一覧・詳細・編集に利用する。
      *
      * @return array<string, mixed>
      */

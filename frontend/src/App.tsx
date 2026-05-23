@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import CompanyDetailModal from "./components/CompanyDetailModal";
 import CompanyTable from "./components/CompanyTable";
 
+import CompanyRegisterForm from "./components/CompanyRegisterForm";
+import SearchForm from "./components/SearchForm";
+import SummaryCards from "./components/SummaryCards";
+
 type Company = {
   id: number;
   name: string;
@@ -48,9 +52,9 @@ const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 const priorityOptions = [
   { value: "5.0", label: "5.0 本命" },
-  { value: "4.5", label: "4.5" },
+  { value: "4.5", label: "4.5 本命寄り" },
   { value: "4.0", label: "4.0 高い" },
-  { value: "3.5", label: "3.5" },
+  { value: "3.5", label: "3.5 " },
   { value: "3.0", label: "3.0 普通" },
   { value: "2.5", label: "2.5" },
   { value: "2.0", label: "2.0 低い" },
@@ -423,44 +427,23 @@ function App() {
             応募企業・選考状況・面談予定・次アクションを一元管理します。
           </p>
         </header>
+        {/* 検索フォーム */}
 
-        <section className="mb-6 grid gap-3 rounded-xl bg-white p-4 shadow-sm md:grid-cols-4">
-          <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
-            placeholder="企業名・メモ検索"
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-          />
+        <SearchForm
+          keyword={keyword}
+          setKeyword={setKeyword}
+          status={status}
+          media={media}
+          setMedia={setMedia}
+          setStatus={setStatus}
+          statusOptions={statusOptions}
+          onSearch={fetchCompanies}
 
-          <select
-            className="rounded-lg border border-slate-300 px-3 py-2"
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-          >
-            <option value="">すべての状況</option>
-            {statusOptions.map((statusOption) => (
-              <option key={statusOption} value={statusOption}>
-                {statusOption}
-              </option>
-            ))}
-          </select>
+        
+        />
 
-          <input
-            className="rounded-lg border border-slate-300 px-3 py-2"
-            placeholder="媒体 type / Green など"
-            value={media}
-            onChange={(event) => setMedia(event.target.value)}
-          />
-
-          <button
-            className="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white"
-            onClick={fetchCompanies}
-          >
-            検索
-          </button>
-        </section>
-
-        <section className="mb-6 rounded-xl bg-white p-4 shadow-sm">
+        {/* 登録フォーム */}
+        {/* <section className="mb-6 rounded-xl bg-white p-4 shadow-sm">
           <h2 className="mb-4 text-xl font-bold">企業登録</h2>
 
           <div className="grid gap-3 md:grid-cols-3">
@@ -516,48 +499,20 @@ function App() {
           >
             登録する
           </button>
-        </section>
+        </section> */}
 
-        <section className="mb-4 grid gap-3 md:grid-cols-5">
-          <div className="rounded-xl bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">応募総数</p>
-            <p className="text-2xl font-bold">{companies.length}</p>
-          </div>
-
-          <div className="rounded-xl bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">面談予定</p>
-            <p className="text-2xl font-bold">
-              {companies.filter((company) => company.status === "面談予定").length}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">返答待ち</p>
-            <p className="text-2xl font-bold">
-              {
-                companies.filter(
-                  (company) => company.status === "面談後返答待ち"
-                ).length
-              }
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">内定</p>
-            <p className="text-2xl font-bold">
-              {companies.filter((company) => company.status === "内定").length}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">落選</p>
-            <p className="text-2xl font-bold">
-              {companies.filter((company) => company.status === "落選").length}
-            </p>
-          </div>
-        </section>
+        {/* //集計カード部分 */}
+        <SummaryCards 
+          companies={companies}
+        />
+        <CompanyRegisterForm
+          form={form}
+          setForm={setForm}
+          onCreate={createCompany}
+          priorityOptions={priorityOptions}
+        />
         
-        {/* 一覧表示テーブル */}
+        {/* 一覧表示テーブル
         <section className="overflow-x-auto rounded-xl bg-white shadow-sm">
           <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
             <thead className="bg-slate-900 text-white">
@@ -658,7 +613,7 @@ function App() {
               )}
             </tbody>
           </table>
-        </section>
+        </section> */}
 
         <CompanyTable
           companies={companies}
