@@ -47,6 +47,24 @@ function App() {
   // 詳細モーダルを開いているか
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  const [detailForm, setDetailForm] = useState({
+    name: "",
+    media: "",
+    priority: "3.0",
+    status: "応募済み",
+    applied_date: "",
+    interview_date: "",
+    job_url: "",
+    interview_url: "",
+    memo: "",
+    next_action: "",
+    document_result: "未対応",
+    first_interview_result: "未対応",
+    second_interview_result: "未対応",
+    final_result: "未対応",
+    rejection_stage: "",
+  });
+
   const [form, setForm] = useState({
     name: "",
     media: "",
@@ -205,7 +223,28 @@ function App() {
     // 詳細ボタンで選択した会社情報を selectedCompany に保持する
     setSelectedCompany(company);
 
-     // selectedCompany を表示するため、詳細モーダルを開く
+    // モーダル内で編集するため、Company型のcamelCaseをform用のsnake_caseへ詰め替える
+    setDetailForm({
+      name: company.name,
+      media: company.media,
+      priority: company.priority ?? "3.0",
+      status: company.status,
+      applied_date: company.appliedDate ?? "",
+      interview_date: company.interviewDate
+            ? company.interviewDate.replace(" ", "T").slice(0, 16)
+            : "",
+      job_url: company.jobUrl ?? "",
+      interview_url: company.interviewUrl ?? "",
+      memo: company.memo ?? "",
+      next_action: company.nextAction ?? "",
+      document_result: company.documentResult ?? "未対応",
+      first_interview_result: company.firstInterviewResult ?? "未対応",
+      second_interview_result: company.secondInterviewResult ?? "未対応",
+      final_result: company.finalResult ?? "未対応",
+      rejection_stage: company.rejectionStage ?? "",
+
+    });
+    // selectedCompany を表示するため、詳細モーダルを開くQ
     setIsDetailOpen(true);
   }
 
@@ -220,6 +259,57 @@ function App() {
   useEffect(() => {
     fetchCompanies();
   }, []);
+
+  async function updateCompanyDetail() {
+    // selectedCompany がない場合は更新対象がないため処理しない
+    if (!selectedCompany) {
+      return;
+    }
+
+    const requestBody = {
+      name: detailForm.name,
+      media: detailForm.media || null,
+      priority: detailForm.priority || null,
+      status: detailForm.status,
+      applied_date: detailForm.applied_date || null,
+      interview_date: detailForm.interview_date
+        ? detailForm.interview_date.replace("T", " ") + ":00"
+        : null,
+      job_url: detailForm.job_url || null,
+      interview_url: detailForm.interview_url || null,
+      memo: detailForm.memo || null,
+      next_action: detailForm.next_action || null,
+      document_result: detailForm.document_result || "未対応",
+      first_interview_result: detailForm.first_interview_result || "未対応",
+      second_interview_result: detailForm.second_interview_result || "未対応",
+      final_result: detailForm.final_result || "未対応",
+      rejection_stage: detailForm.rejection_stage || null,
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/api/companies/${selectedCompany.id}`,{
+      method:"PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(requestBody),
+
+    });
+
+    if(!response.ok) {
+      setToastMessage("更新に失敗しました。");
+
+      setTimeout(() => {
+        setToastMessage("");
+      }, 2500);
+      return;
+    }
+    // まず送信前の編集内容を確認する
+    console.log("詳細更新データ", detailForm);
+
+    await fetchCompanies();
+    closeDetailModal();
+  }
 
   return (
     <main className="min-h-screen bg-slate-100 p-6 text-slate-900">
@@ -278,104 +368,58 @@ function App() {
           </button>
         </section>
         <section className="mb-6 rounded-xl bg-white p-4 shadow-sm">
-  <h2 className="mb-4 text-xl font-bold">企業登録</h2>
+          <h2 className="mb-4 text-xl font-bold">企業登録</h2>
 
-  <div className="grid gap-3 md:grid-cols-3">
-    <input
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      placeholder="企業名"
-      value={form.name}
-      onChange={(event) => setForm({ ...form, name: event.target.value })}
-    />
+          <div className="grid gap-3 md:grid-cols-3">
+            <input
+              className="rounded-lg border border-slate-300 px-3 py-2"
+              placeholder="企業名"
+              value={form.name}
+              onChange={(event) => setForm({ ...form, name: event.target.value })}
+            />
 
-    <input
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      placeholder="媒体"
-      value={form.media}
-      onChange={(event) => setForm({ ...form, media: event.target.value })}
-    />
-   <select
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      value={form.priority}
-      onChange={(event) => setForm({ ...form, priority: event.target.value })}
-    >
-      <option value="5.0">5.0 本命</option>
-      <option value="4.5">4.5 かなり高い</option>
-      <option value="4.0">4.0 高い</option>
-      <option value="3.5">3.5 やや高い</option>
-      <option value="3.0">3.0 普通</option>
-      <option value="2.5">2.5 やや低い</option>
-      <option value="2.0">2.0 低い</option>
-      <option value="1.5">1.5 かなり低い</option>
-      <option value="1.0">1.0 とりあえず</option>
-    </select>
+            <input
+              className="rounded-lg border border-slate-300 px-3 py-2"
+              placeholder="媒体"
+              value={form.media}
+              onChange={(event) => setForm({ ...form, media: event.target.value })}
+            />
+          <select
+              className="rounded-lg border border-slate-300 px-3 py-2"
+              value={form.priority}
+              onChange={(event) => setForm({ ...form, priority: event.target.value })}
+            >
+              <option value="5.0">5.0 本命</option>
+              <option value="4.5">4.5 かなり高い</option>
+              <option value="4.0">4.0 高い</option>
+              <option value="3.5">3.5 やや高い</option>
+              <option value="3.0">3.0 普通</option>
+              <option value="2.5">2.5 やや低い</option>
+              <option value="2.0">2.0 低い</option>
+              <option value="1.5">1.5 かなり低い</option>
+              <option value="1.0">1.0 とりあえず</option>
+            </select>
+            <input
+              className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
+              placeholder="求人URL"
+              value={form.job_url}
+              onChange={(event) => setForm({ ...form, job_url: event.target.value })}
+            />
+            <textarea
+              className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
+              placeholder="メモ"
+              value={form.memo}
+              onChange={(event) => setForm({ ...form, memo: event.target.value })}
+            />
+          </div>
 
-    {/* <select
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      value={form.status}
-      onChange={(event) => setForm({ ...form, status: event.target.value })}
-    >
-      <option value="応募済み">応募済み</option>
-      <option value="書類選考待ち">書類選考待ち</option>
-      <option value="書類通過">書類通過</option>
-      <option value="面談日程調整中">面談日程調整中</option>
-      <option value="面談予定">面談予定</option>
-      <option value="面談後返答待ち">面談後返答待ち</option>
-      <option value="内定">内定</option>
-      <option value="辞退">辞退</option>
-      <option value="落選">落選</option>
-    </select> */}
-
-    {/* <input
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      type="date"
-      value={form.applied_date}
-      onChange={(event) => setForm({ ...form, applied_date: event.target.value })}
-    /> */}
-
-    {/* <input
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      type="datetime-local"
-      value={form.interview_date}
-      onChange={(event) => setForm({ ...form, interview_date: event.target.value })}
-    /> */}
-
-    {/* <input
-      className="rounded-lg border border-slate-300 px-3 py-2"
-      placeholder="次アクション"
-      value={form.next_action}
-      onChange={(event) => setForm({ ...form, next_action: event.target.value })}
-    /> */}
-
-    <input
-      className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
-      placeholder="求人URL"
-      value={form.job_url}
-      onChange={(event) => setForm({ ...form, job_url: event.target.value })}
-    />
-
-    {/* <input
-      className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
-      placeholder="面談URL"
-      value={form.interview_url}
-      onChange={(event) => setForm({ ...form, interview_url: event.target.value })}
-    /> */}
-
-    <textarea
-      className="rounded-lg border border-slate-300 px-3 py-2 md:col-span-3"
-      placeholder="メモ"
-      value={form.memo}
-      onChange={(event) => setForm({ ...form, memo: event.target.value })}
-    />
-  </div>
-
-  <button
-    type="button"
-    className="mt-4 rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white"
-    onClick={createCompany}
-  >
-    登録する
-  </button>
+          <button
+            type="button"
+            className="mt-4 rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white"
+            onClick={createCompany}
+          >
+            登録する
+          </button>
         </section>
 
 
@@ -486,14 +530,53 @@ function App() {
                 閉じる
               </button>
             </div>
-
             <div className="space-y-2 text-sm">
+
               <p>企業名：{selectedCompany.name}</p>
               <p>媒体：{selectedCompany.media ?? "-"}</p>
-              <p>志望度：{selectedCompany.priority ?? "-"}</p>
-              <p>状況：{selectedCompany.status}</p>
+
+
+              <label className="block text-sm font-semibold">志望度</label>
+              <select 
+                className="w-full rounded-lg border px-3 py-2"
+                value={detailForm.priority}
+                onChange={(e) => setDetailForm({...detailForm, priority: e.target.value  })}
+              >
+                <option value="5.0">5.0 本命</option>
+                <option value="4.5">4.5</option>
+                <option value="4.0">4.0 高い</option>
+                <option value="3.5">3.5</option>
+                <option value="3.0">3.0 普通</option>
+                <option value="2.5">2.5</option>
+                <option value="2.0">2.0 低い</option>
+                <option value="1.5">1.5</option>
+                <option value="1.0">1.0 とりあえず</option>
+              </select>
+              <label className="block text-sm font-semibold">状況</label>
+              <select
+                className="w-full rounded-lg border px-3 py-2"
+                value={detailForm.status}
+                onChange={(e) => setDetailForm({...detailForm, status: e.target.value})}
+              >
+                <option value="応募済み">応募済み</option>
+                <option value="書類選考待ち">書類選考待ち</option>
+                <option value="書類通過">書類通過</option>
+                <option value="面談日程調整中">面談日程調整中</option>
+                <option value="面談予定">面談予定</option>
+                <option value="面談後返答待ち">面談後返答待ち</option>
+                <option value="内定">内定</option>
+                <option value="辞退">辞退</option>
+                <option value="落選">落選</option>
+              </select>
               <p>応募日：{selectedCompany.appliedDate ?? "-"}</p>
               <p>面談日：{selectedCompany.interviewDate ?? "-"}</p>
+
+              <label className="block text-sm font-semibold">次アクション</label>
+              <input
+                className="w-full rounded-lg border px-3 py-2"
+                value={detailForm.next_action}
+                onChange={(e) => setDetailForm({...detailForm, next_action: e.target.value})}   
+                 />
               <p>次アクション：{selectedCompany.nextAction ?? "-"}</p>
 
               <p>求人URL：
@@ -529,6 +612,13 @@ function App() {
               <p>最終結果：{selectedCompany.finalResult ?? "-"}</p>
               <p>落選段階：{selectedCompany.rejectionStage ?? "-"}</p>
               <p>メモ：{selectedCompany.memo ?? "-"}</p>
+              <button
+                type="button"
+                className="rounded-lg bg-slate-900 px-4 py-2 font-semibold text-white"
+                onClick={updateCompanyDetail}
+              >
+                    保存
+              </button>
             </div>
           </div>
         </div>
