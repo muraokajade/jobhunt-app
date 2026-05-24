@@ -34,6 +34,7 @@ class CompanyResource extends JsonResource
             'secondInterviewResult' => $this->second_interview_result,
             'finalResult' => $this->final_result,
             'rejectionStage' => $this->rejection_stage,
+            'isFavorite' => $this->is_favorite,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
         ];

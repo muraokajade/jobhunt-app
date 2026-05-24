@@ -10,18 +10,21 @@ use App\Models\Company;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Auth;
 
 // 応募企業情報を管理するAPIコントローラー。
-// 企業一覧取得、詳細取得、登録、更新、削除を担当する。
+// 企業一覧取得、詳細取得、登録、更新、削除、お気に入り切り替えを担当する。
 class CompanyController extends Controller
 {
     /**
      * 企業一覧を取得するメソッド。
-     * keyword / status / media のクエリパラメータを受け取り、条件に合う企業一覧を返す。
+     * ログイン中ユーザー本人の企業だけを取得する。
      */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = Company::query();
+        // 自分の企業だけを対象にする。
+        $query = Company::query()
+            ->where('user_id', Auth::id());
 
         if ($request->filled('keyword')) {
             $keyword = $request->query('keyword');
@@ -35,16 +38,13 @@ class CompanyController extends Controller
         }
 
         if ($request->filled('status')) {
-            // statusが指定された場合、選考状況が一致する企業だけに絞り込む。
             $query->where('status', $request->query('status'));
         }
 
         if ($request->filled('media')) {
-            // mediaが指定された場合、応募媒体が一致する企業だけに絞り込む。
             $query->where('media', $request->query('media'));
         }
 
-        // 面談日が入っている企業を優先し、面談日が近い順、その後は作成日が新しい順で並べる。
         $companies = $query
             ->orderByRaw('interview_date IS NULL')
             ->orderBy('interview_date')
@@ -56,45 +56,70 @@ class CompanyController extends Controller
 
     /**
      * 企業を新規登録するメソッド。
-     * StoreCompanyRequestでバリデーション済みのデータだけを保存する。
+     * 登録時にログイン中ユーザーのIDをuser_idへセットする。
      */
     public function store(StoreCompanyRequest $request): CompanyResource
     {
-        $company = Company::create($request->validated());
+        $data = $request->validated();
+
+        // 登録企業をログイン中ユーザー本人に紐づける。
+        $data['user_id'] = Auth::id();
+
+        $company = Company::create($data);
 
         return new CompanyResource($company);
     }
 
     /**
      * 企業詳細を取得するメソッド。
-     * ルートモデルバインディングで取得した企業情報をResource形式で返す。
+     * 他ユーザーの企業は取得できない。
      */
     public function show(Company $company): CompanyResource
     {
+        abort_unless($company->user_id === Auth::id(), 403);
+
         return new CompanyResource($company);
     }
 
     /**
      * 企業情報を更新するメソッド。
-     * UpdateCompanyRequestでバリデーション済みのデータを使い、PUT全体更新として保存する。
+     * 他ユーザーの企業は更新できない。
      */
     public function update(UpdateCompanyRequest $request, Company $company): CompanyResource
     {
+        abort_unless($company->user_id === Auth::id(), 403);
+
         $company->update($request->validated());
 
-        return new CompanyResource($company);
+        return new CompanyResource($company->fresh());
     }
 
     /**
      * 企業情報を削除するメソッド。
-     * 削除後はフロント側でtoast表示しやすいようにmessage付きのJSONを返す。
+     * 他ユーザーの企業は削除できない。
      */
     public function destroy(Company $company): JsonResponse
     {
+        abort_unless($company->user_id === Auth::id(), 403);
+
         $company->delete();
 
         return response()->json([
             'message' => '会社を削除しました。',
         ]);
+    }
+
+    /**
+     * 企業のお気に入り状態を切り替える。
+     * 他ユーザーの企業は操作できない。
+     */
+    public function toggleFavorite(Company $company): CompanyResource
+    {
+        abort_unless($company->user_id === Auth::id(), 403);
+
+        $company->is_favorite = ! (bool) $company->is_favorite;
+        $company->save();
+
+        return new CompanyResource($company->fresh());
     }
 }

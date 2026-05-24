@@ -25,17 +25,6 @@ const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 type MainPanel = "register" | "list";
 
-type AuthUser = {
-  id: number;
-  name: string;
-  email: string;
-};
-
-type AuthResponse = {
-  user: AuthUser;
-  token: string;
-};
-
 function App() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -53,37 +42,22 @@ function App() {
   const [isActionListsOpen, setIsActionListsOpen] = useState(false);
   const [mainPanel, setMainPanel] = useState<MainPanel>("list");
 
-  const [authToken, setAuthToken] = useState<string | null>(
-    localStorage.getItem("jobhunt_token")
-  );
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [authForm, setAuthForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-
   useEffect(() => {
-    if (!authToken) {
-      setCompanies([]);
-      setDashboard(null);
-      return;
+    fetchCompanies();
+    fetchDashboard();
+  }, []);
+
+  // Dashboard APIから集計データを取得する関数。
+  async function fetchDashboard() {
+    const response = await fetch(`${API_BASE_URL}/companies/dashboard`);
+
+    if (!response.ok) {
+      throw new Error("Dashboard APIの取得に失敗しました。");
     }
 
-    fetchMe(authToken);
-    fetchCompanies(authToken);
-    fetchDashboard(authToken);
-  }, [authToken]);
+    const data: DashboardResponse = await response.json();
 
-  // API通信で利用するheadersを作る関数。
-  // tokenがある場合だけAuthorizationヘッダーを付ける。
-  function createHeaders(token: string | null, hasBody = false) {
-    return {
-      ...(hasBody ? { "Content-Type": "application/json" } : {}),
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
+    setDashboard(data);
   }
 
   // 画面右上に一時的な通知メッセージを表示する関数。
@@ -95,168 +69,38 @@ function App() {
     }, 2500);
   }
 
-  // ログイン中ユーザー情報を取得する関数。
-  async function fetchMe(token: string) {
-    const response = await fetch(`${API_BASE_URL}/me`, {
-      headers: createHeaders(token),
-    });
-
-    if (!response.ok) {
-      localStorage.removeItem("jobhunt_token");
-      setAuthToken(null);
-      setAuthUser(null);
-      return;
-    }
-
-    const data = await response.json();
-    setAuthUser(data.user);
-  }
-
-  // ログイン処理を行う関数。
-  async function login() {
-    const response = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: createHeaders(null, true),
-      body: JSON.stringify({
-        email: authForm.email,
-        password: authForm.password,
-      }),
-    });
-
-    if (!response.ok) {
-      showToast("ログインに失敗しました。");
-      return;
-    }
-
-    const data: AuthResponse = await response.json();
-
-    localStorage.setItem("jobhunt_token", data.token);
-    setAuthToken(data.token);
-    setAuthUser(data.user);
-    showToast("ログインしました。");
-  }
-
-  // ユーザー登録処理を行う関数。
-  async function register() {
-    const response = await fetch(`${API_BASE_URL}/register`, {
-      method: "POST",
-      headers: createHeaders(null, true),
-      body: JSON.stringify(authForm),
-    });
-
-    if (!response.ok) {
-      showToast("ユーザー登録に失敗しました。");
-      return;
-    }
-
-    const data: AuthResponse = await response.json();
-
-    localStorage.setItem("jobhunt_token", data.token);
-    setAuthToken(data.token);
-    setAuthUser(data.user);
-    showToast("ユーザー登録しました。");
-  }
-
-  // ログアウト処理を行う関数。
-  async function logout() {
-    if (authToken) {
-      await fetch(`${API_BASE_URL}/logout`, {
-        method: "POST",
-        headers: createHeaders(authToken),
-      });
-    }
-
-    localStorage.removeItem("jobhunt_token");
-    setAuthToken(null);
-    setAuthUser(null);
-    setCompanies([]);
-    setDashboard(null);
-    showToast("ログアウトしました。");
-  }
-
-  // Dashboard APIから集計データを取得する関数。
-  async function fetchDashboard(tokenOverride?: string) {
-    const token = tokenOverride ?? authToken;
-
-    if (!token) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/companies/dashboard`, {
-        headers: createHeaders(token),
-      });
-
-      if (!response.ok) {
-        throw new Error("Dashboard APIの取得に失敗しました。");
-      }
-
-      const data: DashboardResponse = await response.json();
-
-      setDashboard(data);
-    } catch (error) {
-      console.error(error);
-      setDashboard(null);
-    }
-  }
-
   // 企業一覧APIから企業データを取得する関数。
-  async function fetchCompanies(tokenOverride?: string) {
-    const token = tokenOverride ?? authToken;
-
-    if (!token) {
-      return;
-    }
-
+  async function fetchCompanies() {
     setLoading(true);
 
-    try {
-      const params = new URLSearchParams();
+    const params = new URLSearchParams();
 
-      if (keyword) {
-        params.append("keyword", keyword);
-      }
-
-      if (status) {
-        params.append("status", status);
-      }
-
-      if (media) {
-        params.append("media", media);
-      }
-
-      const queryString = params.toString();
-
-      const response = await fetch(
-        `${API_BASE_URL}/companies${queryString ? `?${queryString}` : ""}`,
-        {
-          headers: createHeaders(token),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("企業一覧APIの取得に失敗しました。");
-      }
-
-      const result = await response.json();
-
-      setCompanies(result.data ?? []);
-    } catch (error) {
-      console.error(error);
-      showToast("企業一覧の取得に失敗しました。");
-      setCompanies([]);
-    } finally {
-      setLoading(false);
+    if (keyword) {
+      params.append("keyword", keyword);
     }
+
+    if (status) {
+      params.append("status", status);
+    }
+
+    if (media) {
+      params.append("media", media);
+    }
+
+    const queryString = params.toString();
+
+    const response = await fetch(
+      `${API_BASE_URL}/companies${queryString ? `?${queryString}` : ""}`
+    );
+
+    const result = await response.json();
+
+    setCompanies(result.data ?? []);
+    setLoading(false);
   }
 
   // 企業を新規登録する関数。
   async function createCompany() {
-    if (!authToken) {
-      showToast("ログインしてください。");
-      return;
-    }
-
     if (!form.name.trim()) {
       showToast("企業名を入力してください。");
       return;
@@ -282,7 +126,10 @@ function App() {
 
     const response = await fetch(`${API_BASE_URL}/companies`, {
       method: "POST",
-      headers: createHeaders(authToken, true),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -293,22 +140,21 @@ function App() {
 
     showToast("企業を登録しました。");
     setForm(createInitialForm());
-    await fetchCompanies();
     await fetchDashboard();
+    await fetchCompanies();
     setMainPanel("list");
   }
 
   // 一覧上で志望度を変更する関数。
   async function updateCompanyPriority(company: Company, priority: string) {
-    if (!authToken) {
-      return;
-    }
-
     const requestBody = buildCompanyRequestBody(company, { priority });
 
     const response = await fetch(`${API_BASE_URL}/companies/${company.id}`, {
       method: "PUT",
-      headers: createHeaders(authToken, true),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -318,21 +164,20 @@ function App() {
     }
 
     showToast("志望度を更新しました。");
-    await fetchCompanies();
     await fetchDashboard();
+    await fetchCompanies();
   }
 
   // 一覧上で選考状況を変更する関数。
   async function updateCompanyStatus(company: Company, status: string) {
-    if (!authToken) {
-      return;
-    }
-
     const requestBody = buildCompanyRequestBody(company, { status });
 
     const response = await fetch(`${API_BASE_URL}/companies/${company.id}`, {
       method: "PUT",
-      headers: createHeaders(authToken, true),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -342,32 +187,8 @@ function App() {
     }
 
     showToast("状況を更新しました。");
-    await fetchCompanies();
     await fetchDashboard();
-  }
-
-  // 企業のお気に入り状態を切り替える関数。
-  async function toggleCompanyFavorite(company: Company) {
-    if (!authToken) {
-      return;
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/companies/${company.id}/favorite`,
-      {
-        method: "PATCH",
-        headers: createHeaders(authToken),
-      }
-    );
-
-    if (!response.ok) {
-      showToast("お気に入りの更新に失敗しました。");
-      return;
-    }
-
-    showToast("お気に入りを更新しました。");
     await fetchCompanies();
-    await fetchDashboard();
   }
 
   // 詳細モーダルを開く関数。
@@ -404,7 +225,7 @@ function App() {
 
   // 詳細モーダルで編集した企業情報を保存する関数。
   async function updateCompanyDetail() {
-    if (!selectedCompany || !authToken) {
+    if (!selectedCompany) {
       return;
     }
 
@@ -430,7 +251,10 @@ function App() {
       `${API_BASE_URL}/companies/${selectedCompany.id}`,
       {
         method: "PUT",
-        headers: createHeaders(authToken, true),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify(requestBody),
       }
     );
@@ -441,17 +265,13 @@ function App() {
     }
 
     showToast("更新しました。");
-    await fetchCompanies();
     await fetchDashboard();
+    await fetchCompanies();
     closeDetailModal();
   }
 
   // 企業を削除する関数。
   async function deleteCompany(id: number) {
-    if (!authToken) {
-      return;
-    }
-
     const confirmed = window.confirm("この企業を削除しますか？");
 
     if (!confirmed) {
@@ -460,7 +280,9 @@ function App() {
 
     const response = await fetch(`${API_BASE_URL}/companies/${id}`, {
       method: "DELETE",
-      headers: createHeaders(authToken),
+      headers: {
+        Accept: "application/json",
+      },
     });
 
     if (!response.ok) {
@@ -469,86 +291,31 @@ function App() {
     }
 
     showToast("企業を削除しました。");
-    await fetchCompanies();
     await fetchDashboard();
+    await fetchCompanies();
   }
 
-  if (!authToken) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-100 px-6 text-slate-900">
-        {toastMessage && (
-          <div className="fixed right-6 top-6 z-50 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-lg">
-            {toastMessage}
-          </div>
-        )}
-
-        <section className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            JobHunt Lite
-          </p>
-
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">
-            {authMode === "login" ? "ログイン" : "ユーザー登録"}
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-600">
-            自分の応募企業・選考状況・次アクションを管理します。
-          </p>
-
-          <div className="mt-6 space-y-4">
-            {authMode === "register" && (
-              <input
-                className="h-11 w-full rounded-xl border border-slate-300 px-4 outline-none focus:border-slate-500"
-                placeholder="名前"
-                value={authForm.name}
-                onChange={(event) =>
-                  setAuthForm({ ...authForm, name: event.target.value })
-                }
-              />
-            )}
-
-            <input
-              className="h-11 w-full rounded-xl border border-slate-300 px-4 outline-none focus:border-slate-500"
-              placeholder="メールアドレス"
-              value={authForm.email}
-              onChange={(event) =>
-                setAuthForm({ ...authForm, email: event.target.value })
-              }
-            />
-
-            <input
-              className="h-11 w-full rounded-xl border border-slate-300 px-4 outline-none focus:border-slate-500"
-              type="password"
-              placeholder="パスワード"
-              value={authForm.password}
-              onChange={(event) =>
-                setAuthForm({ ...authForm, password: event.target.value })
-              }
-            />
-
-            <button
-              type="button"
-              onClick={authMode === "login" ? login : register}
-              className="h-11 w-full rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-slate-800"
-            >
-              {authMode === "login" ? "ログイン" : "登録する"}
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              setAuthMode(authMode === "login" ? "register" : "login")
-            }
-            className="mt-5 w-full text-sm font-semibold text-slate-600 hover:text-slate-900"
-          >
-            {authMode === "login"
-              ? "アカウントを作成する"
-              : "ログイン画面へ戻る"}
-          </button>
-        </section>
-      </main>
+    // 企業のお気に入り状態を切り替える関数。
+  // ハートボタン押下時に、Laravel側で is_favorite を true / false 反転する。
+  async function toggleCompanyFavorite(company: Company) {
+    const response = await fetch(
+      `${API_BASE_URL}/companies/${company.id}/favorite`,
+      {
+        method: "PATCH",
+        headers: {
+          Accept: "application/json",
+        },
+      }
     );
+
+    if (!response.ok) {
+      showToast("お気に入りの更新に失敗しました。");
+      return;
+    }
+
+    showToast("お気に入りを更新しました。");
+    await fetchDashboard();
+    await fetchCompanies();
   }
 
   return (
@@ -576,10 +343,6 @@ function App() {
 
                 <p className="mt-2 text-sm text-slate-600">
                   企業登録・検索・選考状況更新・詳細編集を一画面で行います。
-                </p>
-
-                <p className="mt-2 text-xs font-semibold text-slate-500">
-                  {authUser?.name ?? "ユーザー"} さんでログイン中
                 </p>
               </div>
 
@@ -609,14 +372,6 @@ function App() {
                 >
                   一覧
                 </button>
-
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
-                >
-                  ログアウト
-                </button>
               </div>
             </div>
           </section>
@@ -634,7 +389,7 @@ function App() {
             setMedia={setMedia}
             setStatus={setStatus}
             statusOptions={statusOptions}
-            onSearch={() => fetchCompanies()}
+            onSearch={fetchCompanies}
           />
 
           <section className="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm">

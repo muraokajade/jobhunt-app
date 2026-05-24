@@ -17,6 +17,7 @@ export type Company = {
   secondInterviewResult: string | null;
   finalResult: string | null;
   rejectionStage: string | null;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 };

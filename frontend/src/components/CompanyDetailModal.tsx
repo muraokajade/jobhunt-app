@@ -33,6 +33,151 @@ function CompanyDetailModal({
     return null;
   }
 
+  // フォーム項目を安全に更新する共通関数。
+  // prevを使うことで、古いdetailFormを参照して上書きミスが起きることを防ぐ。
+  function updateDetailForm(values: Partial<CompanyForm>) {
+    setDetailForm((prev) => ({
+      ...prev,
+      ...values,
+    }));
+  }
+
+  // 書類選考の結果変更時に、状況・落選段階を自動補助する。
+  function handleDocumentResultChange(result: string) {
+    if (result === "不通過") {
+      updateDetailForm({
+        document_result: result,
+        status: "落選",
+        rejection_stage: "書類落ち",
+      });
+      return;
+    }
+
+    if (result === "通過") {
+      updateDetailForm({
+        document_result: result,
+        status: "書類通過",
+        rejection_stage: "",
+      });
+      return;
+    }
+
+    if (result === "辞退") {
+      updateDetailForm({
+        document_result: result,
+        status: "辞退",
+        rejection_stage: "辞退",
+      });
+      return;
+    }
+
+    updateDetailForm({
+      document_result: result,
+    });
+  }
+
+  // 1次面接の結果変更時に、状況・落選段階を自動補助する。
+  function handleFirstInterviewResultChange(result: string) {
+    if (result === "不通過") {
+      updateDetailForm({
+        first_interview_result: result,
+        status: "落選",
+        rejection_stage: "1次面接落ち",
+      });
+      return;
+    }
+
+    if (result === "通過") {
+      updateDetailForm({
+        first_interview_result: result,
+        status: "面談後返答待ち",
+        rejection_stage: "",
+      });
+      return;
+    }
+
+    if (result === "辞退") {
+      updateDetailForm({
+        first_interview_result: result,
+        status: "辞退",
+        rejection_stage: "辞退",
+      });
+      return;
+    }
+
+    updateDetailForm({
+      first_interview_result: result,
+    });
+  }
+
+  // 2次面接の結果変更時に、状況・落選段階を自動補助する。
+  function handleSecondInterviewResultChange(result: string) {
+    if (result === "不通過") {
+      updateDetailForm({
+        second_interview_result: result,
+        status: "落選",
+        rejection_stage: "2次面接落ち",
+      });
+      return;
+    }
+
+    if (result === "通過") {
+      updateDetailForm({
+        second_interview_result: result,
+        status: "面談後返答待ち",
+        rejection_stage: "",
+      });
+      return;
+    }
+
+    if (result === "辞退") {
+      updateDetailForm({
+        second_interview_result: result,
+        status: "辞退",
+        rejection_stage: "辞退",
+      });
+      return;
+    }
+
+    updateDetailForm({
+      second_interview_result: result,
+    });
+  }
+
+  // 最終結果の変更時に、状況・落選段階を自動補助する。
+  function handleFinalResultChange(result: string) {
+    if (result === "不通過") {
+      updateDetailForm({
+        final_result: result,
+        status: "落選",
+        rejection_stage: "最終落ち",
+      });
+      return;
+    }
+
+    if (result === "通過") {
+      updateDetailForm({
+        final_result: result,
+        status: "内定",
+        rejection_stage: "",
+      });
+      return;
+    }
+
+    if (result === "辞退") {
+      updateDetailForm({
+        final_result: result,
+        status: "辞退",
+        rejection_stage: "辞退",
+      });
+      return;
+    }
+
+    updateDetailForm({
+      final_result: result,
+    });
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
@@ -77,7 +222,7 @@ function CompanyDetailModal({
               <div>
                 <p className="text-xs font-semibold text-slate-500">応募日</p>
                 <p className="mt-1 font-semibold text-slate-900">
-                  {selectedCompany.appliedDate ?? "-"}
+                  {detailForm.applied_date || selectedCompany.appliedDate || "-"}
                 </p>
               </div>
             </div>
@@ -97,8 +242,7 @@ function CompanyDetailModal({
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.priority}
                   onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
+                    updateDetailForm({
                       priority: event.target.value,
                     })
                   }
@@ -118,12 +262,46 @@ function CompanyDetailModal({
                 <select
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.status}
-                  onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
-                      status: event.target.value,
-                    })
-                  }
+                  onChange={(event) => {
+                    const nextStatus = event.target.value;
+
+                    if (nextStatus === "書類通過") {
+                      updateDetailForm({
+                        status: nextStatus,
+                        document_result: "通過",
+                        rejection_stage: "",
+                      });
+                      return;
+                    }
+
+                    if (nextStatus === "内定") {
+                      updateDetailForm({
+                        status: nextStatus,
+                        final_result: "通過",
+                        rejection_stage: "",
+                      });
+                      return;
+                    }
+
+                    if (nextStatus === "落選") {
+                      updateDetailForm({
+                        status: nextStatus,
+                      });
+                      return;
+                    }
+
+                    if (nextStatus === "辞退") {
+                      updateDetailForm({
+                        status: nextStatus,
+                        rejection_stage: "辞退",
+                      });
+                      return;
+                    }
+
+                    updateDetailForm({
+                      status: nextStatus,
+                    });
+                  }}
                 >
                   {statusOptions.map((statusOption) => (
                     <option key={statusOption} value={statusOption}>
@@ -142,8 +320,7 @@ function CompanyDetailModal({
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.interview_date}
                   onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
+                    updateDetailForm({
                       interview_date: event.target.value,
                     })
                   }
@@ -158,8 +335,7 @@ function CompanyDetailModal({
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.next_action}
                   onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
+                    updateDetailForm({
                       next_action: event.target.value,
                     })
                   }
@@ -182,8 +358,7 @@ function CompanyDetailModal({
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.job_url}
                   onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
+                    updateDetailForm({
                       job_url: event.target.value,
                     })
                   }
@@ -211,8 +386,7 @@ function CompanyDetailModal({
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.interview_url}
                   onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
+                    updateDetailForm({
                       interview_url: event.target.value,
                     })
                   }
@@ -247,27 +421,9 @@ function CompanyDetailModal({
                 <select
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.document_result}
-                  onChange={(event) => {
-                    // 書類選考selectで選ばれた値を一時的に保持する。
-                    // 不通過の場合のみ、状況と落選段階を補助的に自動反映する。
-                    const documentResult = event.target.value;
-
-                    if (documentResult === "不通過") {
-                      setDetailForm({
-                        ...detailForm,
-                        document_result: documentResult,
-                        status: "落選",
-                        rejection_stage: "書類落ち",
-                      });
-
-                      return;
-                    }
-
-                    setDetailForm({
-                      ...detailForm,
-                      document_result: documentResult,
-                    });
-                  }}
+                  onChange={(event) =>
+                    handleDocumentResultChange(event.target.value)
+                  }
                 >
                   {resultOptions.map((result) => (
                     <option key={result} value={result}>
@@ -284,27 +440,9 @@ function CompanyDetailModal({
                 <select
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.first_interview_result}
-                  onChange={(event) => {
-                    // 1次面接selectで選ばれた値を一時的に保持する。
-                    // 不通過の場合のみ、状況と落選段階を補助的に自動反映する。
-                    const firstInterviewResult = event.target.value;
-
-                    if (firstInterviewResult === "不通過") {
-                      setDetailForm({
-                        ...detailForm,
-                        first_interview_result: firstInterviewResult,
-                        status: "落選",
-                        rejection_stage: "1次面接落ち",
-                      });
-
-                      return;
-                    }
-
-                    setDetailForm({
-                      ...detailForm,
-                      first_interview_result: firstInterviewResult,
-                    });
-                  }}
+                  onChange={(event) =>
+                    handleFirstInterviewResultChange(event.target.value)
+                  }
                 >
                   {resultOptions.map((result) => (
                     <option key={result} value={result}>
@@ -321,27 +459,9 @@ function CompanyDetailModal({
                 <select
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.second_interview_result}
-                  onChange={(event) => {
-                    // 2次面接selectで選ばれた値を一時的に保持する。
-                    // 不通過の場合のみ、状況と落選段階を補助的に自動反映する。
-                    const secondInterviewResult = event.target.value;
-
-                    if (secondInterviewResult === "不通過") {
-                      setDetailForm({
-                        ...detailForm,
-                        second_interview_result: secondInterviewResult,
-                        status: "落選",
-                        rejection_stage: "2次面接落ち",
-                      });
-
-                      return;
-                    }
-
-                    setDetailForm({
-                      ...detailForm,
-                      second_interview_result: secondInterviewResult,
-                    });
-                  }}
+                  onChange={(event) =>
+                    handleSecondInterviewResultChange(event.target.value)
+                  }
                 >
                   {resultOptions.map((result) => (
                     <option key={result} value={result}>
@@ -358,38 +478,9 @@ function CompanyDetailModal({
                 <select
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.final_result}
-                  onChange={(event) => {
-                    // 最終結果selectで選ばれた値を一時的に保持する。
-                    // 通過なら内定、不通過なら最終落ちとして補助的に自動反映する。
-                    const finalResult = event.target.value;
-
-                    if (finalResult === "不通過") {
-                      setDetailForm({
-                        ...detailForm,
-                        final_result: finalResult,
-                        status: "落選",
-                        rejection_stage: "最終落ち",
-                      });
-
-                      return;
-                    }
-
-                    if (finalResult === "通過") {
-                      setDetailForm({
-                        ...detailForm,
-                        final_result: finalResult,
-                        status: "内定",
-                        rejection_stage: "",
-                      });
-
-                      return;
-                    }
-
-                    setDetailForm({
-                      ...detailForm,
-                      final_result: finalResult,
-                    });
-                  }}
+                  onChange={(event) =>
+                    handleFinalResultChange(event.target.value)
+                  }
                 >
                   {resultOptions.map((result) => (
                     <option key={result} value={result}>
@@ -407,8 +498,7 @@ function CompanyDetailModal({
                   className="h-11 w-full rounded-xl border border-slate-300 px-3 text-sm outline-none focus:border-slate-500"
                   value={detailForm.rejection_stage}
                   onChange={(event) =>
-                    setDetailForm({
-                      ...detailForm,
+                    updateDetailForm({
                       rejection_stage: event.target.value,
                     })
                   }
@@ -430,8 +520,7 @@ function CompanyDetailModal({
               className="min-h-28 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
               value={detailForm.memo}
               onChange={(event) =>
-                setDetailForm({
-                  ...detailForm,
+                updateDetailForm({
                   memo: event.target.value,
                 })
               }

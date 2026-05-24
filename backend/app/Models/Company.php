@@ -21,6 +21,7 @@ class Company extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'name',
         'media',
         'priority',
@@ -36,6 +37,25 @@ class Company extends Model
         'second_interview_result',
         'final_result',
         'rejection_stage',
+        'is_favorite'
 
     ];
+
+    /**
+     * 型変換するカラム一覧。
+     * 日付・日時・真偽値をLaravel側で適切な型として扱う。
+     *
+     * @var array<string, string>
+     */
+    protected $cats = [
+        'is_favorite' => 'boolean',
+        'applied_date' => 'date',
+        'interview_date' => 'datetime',
+    ];
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
