@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 
 class CompanyDashboardController extends Controller
@@ -74,26 +75,26 @@ class CompanyDashboardController extends Controller
                 'highPriority' => $highPriorityCompanies->count(),
             ],
             'actionLists' => [
-                // 面談予定リスト。
-                // 面談日が近い順に並べ、上から3件だけ返す。
-                'interviews' => $interviewCompanies
-                    ->sortBy('interview_date')
-                    ->take(3)
-                    ->values(),
+                'interviews' => CompanyResource::collection(
+                    $interviewCompanies
+                        ->sortBy('interview_date')
+                        ->take(3)
+                        ->values()
+                )->resolve(),
 
-                // 確認待ちリスト。
-                // 応募日が古い順に並べ、上から3件だけ返す。
-                'waiting' => $waitingCompanies
-                    ->sortBy('applied_date')
-                    ->take(3)
-                    ->values(),
+                'waiting' => CompanyResource::collection(
+                    $waitingCompanies
+                        ->sortBy('applied_date')
+                        ->take(3)
+                        ->values()
+                )->resolve(),
 
-                // 高優先度リスト。
-                // priorityが高い順に並べ、上から3件だけ返す。
-                'highPriority' => $highPriorityCompanies
-                    ->sortByDesc('priority')
-                    ->take(3)
-                    ->values(),
+                'highPriority' => CompanyResource::collection(
+                    $highPriorityCompanies
+                        ->sortByDesc('priority')
+                        ->take(3)
+                        ->values()
+                )->resolve(),
             ],
 
 
