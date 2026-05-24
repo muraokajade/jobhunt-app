@@ -8,8 +8,7 @@ import SummaryCards from "./components/SummaryCards";
 import ActionLists from "./components/ActionLists";
 import AppHeader from "./components/AppHeader";
 import TodayStrategyPanel from "./components/TodayStrategyPanel";
-import type { Company, CompanyForm } from "./types/company";
-
+import type { Company, CompanyForm, DashboardResponse } from "./types/company";
 import {
   priorityOptions,
   statusOptions,
@@ -37,10 +36,26 @@ function App() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
 
   useEffect(() => {
     fetchCompanies();
+    fetchDashboard();
   }, []);
+
+  // Dashboard APIから集計データを取得する関数。
+  // SummaryCardsで表示する件数情報をLaravel側から受け取る。
+  async function fetchDashboard() {
+    const response = await fetch("http://127.0.0.1:8000/api/companies/dashboard");
+
+    if (!response.ok) {
+      throw new Error("Dashboard APIの取得に失敗しました。");
+    }
+
+    const data: DashboardResponse = await response.json();
+
+    setDashboard(data);
+  }
 
   function showToast(message: string) {
     setToastMessage(message);
@@ -122,6 +137,7 @@ function App() {
 
     showToast("企業を登録しました。");
     setForm(createInitialForm());
+    await fetchDashboard();
     await fetchCompanies();
   }
 
@@ -146,6 +162,7 @@ function App() {
     }
 
     showToast("志望度を更新しました。");
+    await fetchDashboard();
     await fetchCompanies();
   }
 
@@ -169,6 +186,7 @@ function App() {
     }
 
     showToast("状況を更新しました。");
+    await fetchDashboard();
     await fetchCompanies();
   }
 
@@ -246,6 +264,7 @@ function App() {
     }
 
     showToast("更新しました。");
+    await fetchDashboard();
     await fetchCompanies();
     closeDetailModal();
   }
@@ -270,6 +289,7 @@ function App() {
     }
 
     showToast("企業を削除しました。");
+     await fetchDashboard();
     await fetchCompanies();
   }
 
@@ -334,7 +354,7 @@ function App() {
         
         />
         <SummaryCards 
-          companies={companies}
+          companies={companies} dashboardSummary={dashboard?.summary}
         />
 
         <section className="mb-3">
@@ -344,7 +364,7 @@ function App() {
           </p>
         </section>
 
-        <ActionLists companies={companies} />
+        <ActionLists companies={companies} onOpenDetail={openDetailModal} dashboardActionLists={dashboard?.actionLists}/>
         <CompanyRegisterForm
           form={form}
           setForm={setForm}

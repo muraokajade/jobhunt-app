@@ -47,3 +47,33 @@ export type Option = {
   value: string;
   label: string;
 };
+
+// Dashboard APIから返るsummary情報の型。
+// Laravel側の /api/companies/dashboard の summary と対応する。
+export type DashboardSummary = {
+  total: number;
+  interview: number;
+  waiting: number;
+  offer: number;
+  rejected: number;
+  highPriority: number;
+};
+
+// Dashboard API全体のレスポンス型。
+// まずはSummaryCardsで使うsummaryだけを扱う。
+
+//php、バックエンド集計なら
+// Dashboard API全体のレスポンス型。
+// summaryは集計カード、actionListsは重要企業リストで利用する。
+export type DashboardResponse = {
+  summary: DashboardSummary;
+  actionLists: DashboardActionLists;
+};
+
+// Dashboard APIから返るActionLists用データの型。
+// Laravel側で抽出済みの重要企業リストをReactで表示するために使う。
+export type DashboardActionLists = {
+  interviews: Company[];
+  waiting: Company[];
+  highPriority: Company[];
+};

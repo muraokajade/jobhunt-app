@@ -1268,3 +1268,83 @@ JobHunt Liteが完成したら、JobHunt Proとして以下を追加検討する
 - AI補助
 
 まずはLiteを完成させる。
+
+##　5/24-5/25 設計実装完了
+
+### 1. CompanyDetailModalを5ブロックに分ける
+
+- 理由:JobHunt Liteの編集体験は全部モーダルに集まってるから。
+
+1. 基本情報
+   - 企業名
+   - 媒体
+   - 応募日
+
+2. 選考情報
+   - 志望度
+   - 状況
+   - 面談日
+   - 次アクション
+
+3. URL
+   - 求人URL
+   - 面談URL
+
+4. 選考結果
+   - 書類選考
+   - 1次面接
+   - 2次面接
+   - 最終結果
+   - 落選段階
+
+5. メモ・操作
+   - メモ
+   - 保存
+   - 閉じる
+
+### 見た目:
+
+- モーダル全体：rounded-2xl
+- セクションごとに border-t か bg-slate-50
+- input/select/textarea：h-11 rounded-xl border-slate-300
+- ラベル：text-sm font-semibold text-slate-700
+- 保存ボタン：黒
+- 閉じるボタン：白/枠線
+
+### 完了条件
+
+- 詳細モーダルを開いたときに「どこを編集すればいいか」迷わない
+
+### 2. ActionListsに「詳細」ボタンを付ける
+
+- ActionListsProps に onOpenDetail を追加
+- App.tsx から openDetailModal を渡す
+- 各カードに「詳細」ボタンを置く
+- クリックで CompanyDetailModal を開く
+
+### 3. CompanyTableを整える
+
+- テーブルヘッダーを濃いslate-900で統一
+- 行の高さを少し上げる
+- selectをrounded-lg / h-9に統一
+- 詳細ボタンをslate-700系にする
+- 削除ボタンはred-600だが小さめ
+- メモやURLなど長い文字は表示しすぎない
+
+### 4. CompanyRegisterFormを軽くする
+
+- 登録フォームをカード化したまま軽くする
+- 入力欄の高さを揃える
+- 詳細項目は増やさない
+- 登録ボタンだけ黒で目立たせる
+
+### 5. Headerの画面遷移はまだ作らない
+
+- 応募管理：現在画面
+- Dashboard：将来拡張
+- 検討リスト：将来拡張
+- 設定：将来拡張
+
+### 6. 最後にテスト確認
+
+php artisan test --filter=CompanyApiTest

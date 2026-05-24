@@ -1,14 +1,18 @@
+import type { Company, DashboardSummary } from "../types/company";
+
 // 集計カードで利用する企業データの型。
 // 一覧表示や集計に必要な最低限の項目として、idとstatusを受け取る。
-type Company = {
-  id: number;
-  status: string;
-};
+// type Company = {
+//   id: number;
+//   status: string;
+// };
 
 // SummaryCardsコンポーネントが親コンポーネントから受け取るpropsの型。
-// companiesを受け取り、応募総数や状況別件数を画面に表示する。
+// companiesを受け取り、応募総数や状況
+// 別件数を画面に表示する。
 type SummaryCardsProps = {
   companies: Company[];
+  dashboardSummary?: DashboardSummary;
 };
 
 // 企業一覧データから、指定した選考状況に一致する件数を数える関数。
@@ -19,39 +23,46 @@ function countByStatus(companies: Company[], status: string) {
 
 // 応募企業の集計カードを表示するコンポーネント。
 // API通信は行わず、親から受け取ったcompaniesをもとに画面表示用の件数を計算する。
-function SummaryCards({ companies }: SummaryCardsProps) {
+function SummaryCards({ companies, dashboardSummary }: SummaryCardsProps) {
+
+  const total = dashboardSummary?.total ?? companies.length;
+  const interview = dashboardSummary?.interview ?? countByStatus(companies, "面談予定");
+  const waiting = dashboardSummary?.waiting ?? countByStatus(companies, "面談後返答待ち");
+  const offer = dashboardSummary?.offer ?? countByStatus(companies, "内定");
+  const rejected = dashboardSummary?.rejected ?? countByStatus(companies, "落選");
+
   return (
     <section className="mb-4 grid gap-3 md:grid-cols-5">
       <div className="rounded-xl bg-white p-4 shadow-sm">
         <p className="text-sm text-slate-500">応募総数</p>
-        <p className="text-2xl font-bold">{companies.length}</p>
+        <p className="text-2xl font-bold">{total}</p>
       </div>
 
       <div className="rounded-xl bg-white p-4 shadow-sm">
         <p className="text-sm text-slate-500">面談予定</p>
         <p className="text-2xl font-bold">
-          {countByStatus(companies, "面談予定")}
+          {interview}
         </p>
       </div>
 
       <div className="rounded-xl bg-white p-4 shadow-sm">
         <p className="text-sm text-slate-500">返答待ち</p>
         <p className="text-2xl font-bold">
-          {countByStatus(companies, "面談後返答待ち")}
+          {waiting}
         </p>
       </div>
 
       <div className="rounded-xl bg-white p-4 shadow-sm">
         <p className="text-sm text-slate-500">内定</p>
         <p className="text-2xl font-bold">
-          {countByStatus(companies, "内定")}
+          {offer}
         </p>
       </div>
 
       <div className="rounded-xl bg-white p-4 shadow-sm">
         <p className="text-sm text-slate-500">落選</p>
         <p className="text-2xl font-bold">
-          {countByStatus(companies, "落選")}
+          {rejected}
         </p>
       </div>
     </section>
